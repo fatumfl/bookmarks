@@ -1,0 +1,4134 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark" data-font="sans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Жёсткая политика: никаких сетевых запросов из скриптов (connect-src закрыт через default-src 'none'),
+       картинки (favicon) разрешены, всё остальное запрещено. Закрепляет ADR006 технически. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: http: data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'" />
+  <title>Bookmarks — Personal New Tab Dashboard</title>
+  <style>
+    /* =========================================================================
+       MATERIAL DESIGN 3 / ANDROID-INSPIRED DESIGN TOKENS & SYSTEM FONTS
+       ========================================================================= */
+    :root,
+    [data-theme="dark"] {
+      --md-sys-color-primary: #a8c7fa;
+      --md-sys-color-on-primary: #062e6f;
+      --md-sys-color-primary-container: #1b3b6f;
+      --md-sys-color-on-primary-container: #d8e6ff;
+      --md-sys-color-secondary: #c4cad4;
+      --md-sys-color-on-secondary: #252b33;
+      --md-sys-color-secondary-container: #2b384e;
+      --md-sys-color-on-secondary-container: #dce8ff;
+      --md-sys-color-tertiary: #8bd4a3;
+      --md-sys-color-on-tertiary: #09381c;
+      --md-sys-color-error: #f28b82;
+      --md-sys-color-on-error: #601410;
+      --md-sys-color-error-container: #8c1d18;
+      --md-sys-color-on-error-container: #f9dedc;
+      --md-sys-color-surface: #111827;
+      --md-sys-color-surface-dim: #0b111e;
+      --md-sys-color-surface-container-lowest: #0a0f1a;
+      --md-sys-color-surface-container-low: #162032;
+      --md-sys-color-surface-container: #1b283e;
+      --md-sys-color-surface-container-high: #22324d;
+      --md-sys-color-surface-container-highest: #2b3e5e;
+      --md-sys-color-on-surface: #eef2f8;
+      --md-sys-color-on-surface-variant: #b8c2d1;
+      --md-sys-color-outline: #7c889c;
+      --md-sys-color-outline-variant: #31425e;
+      --md-sys-color-scrim: rgba(4, 8, 15, 0.72);
+      --card-alt-bg: #12223a;
+      --card-alt-bg-2: #192b47;
+      --card-alt-bg-3: #152640;
+      --tag-bg-1: rgba(168, 199, 250, 0.22);
+      --tag-fg-1: #cfe1ff;
+      --tag-bg-2: rgba(139, 212, 163, 0.22);
+      --tag-fg-2: #bcefd0;
+      --tag-bg-3: rgba(246, 193, 119, 0.22);
+      --tag-fg-3: #fae0b5;
+      --tag-bg-4: rgba(210, 168, 255, 0.22);
+      --tag-fg-4: #ebd8ff;
+      --md-shadow-1: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+      --md-shadow-2: 0 6px 14px rgba(0, 0, 0, 0.45), 0 2px 5px rgba(0, 0, 0, 0.3);
+      --md-shadow-3: 0 12px 28px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.38);
+      --bg-gradient:
+        linear-gradient(125deg, rgba(29, 78, 137, 0.42) 0%, rgba(17, 24, 39, 0.92) 48%, rgba(30, 58, 95, 0.48) 100%),
+        radial-gradient(circle at 18% 20%, rgba(56, 139, 253, 0.22), transparent 46%),
+        radial-gradient(circle at 82% 78%, rgba(46, 160, 120, 0.16), transparent 48%),
+        linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    }
+
+    [data-theme="light"] {
+      --md-sys-color-primary: #1558c0;
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-primary-container: #cfe2ff;
+      --md-sys-color-on-primary-container: #072254;
+      --md-sys-color-secondary: #475569;
+      --md-sys-color-on-secondary: #ffffff;
+      --md-sys-color-secondary-container: #dce7f7;
+      --md-sys-color-on-secondary-container: #132238;
+      --md-sys-color-tertiary: #116634;
+      --md-sys-color-on-tertiary: #ffffff;
+      --md-sys-color-error: #b3261e;
+      --md-sys-color-on-error: #ffffff;
+      --md-sys-color-error-container: #f9dedc;
+      --md-sys-color-on-error-container: #410e0b;
+      --md-sys-color-surface: #eaf0f7;
+      --md-sys-color-surface-dim: #dfe7f1;
+      --md-sys-color-surface-container-lowest: #ffffff;
+      --md-sys-color-surface-container-low: #f4f7fb;
+      --md-sys-color-surface-container: #e8eff8;
+      --md-sys-color-surface-container-high: #dde6f3;
+      --md-sys-color-surface-container-highest: #cedbef;
+      --md-sys-color-on-surface: #131c2e;
+      --md-sys-color-on-surface-variant: #3b4963;
+      --md-sys-color-outline: #64748b;
+      --md-sys-color-outline-variant: #b8c7dc;
+      --md-sys-color-scrim: rgba(15, 23, 42, 0.45);
+      --card-alt-bg: #eef4fc;
+      --card-alt-bg-2: #e4eefb;
+      --card-alt-bg-3: #f7faff;
+      --tag-bg-1: rgba(21, 88, 192, 0.14);
+      --tag-fg-1: #11479c;
+      --tag-bg-2: rgba(17, 102, 52, 0.15);
+      --tag-fg-2: #0e542a;
+      --tag-bg-3: rgba(161, 86, 12, 0.15);
+      --tag-fg-3: #8a4808;
+      --tag-bg-4: rgba(107, 45, 173, 0.14);
+      --tag-fg-4: #582094;
+      --md-shadow-1: 0 2px 6px rgba(15, 23, 42, 0.10), 0 1px 3px rgba(15, 23, 42, 0.06);
+      --md-shadow-2: 0 6px 14px rgba(15, 23, 42, 0.14), 0 2px 5px rgba(15, 23, 42, 0.08);
+      --md-shadow-3: 0 12px 28px rgba(15, 23, 42, 0.20), 0 4px 10px rgba(15, 23, 42, 0.12);
+      --bg-gradient:
+        linear-gradient(128deg, rgba(147, 184, 230, 0.55) 0%, rgba(235, 242, 250, 0.92) 52%, rgba(176, 206, 240, 0.58) 100%),
+        radial-gradient(circle at 15% 18%, rgba(59, 130, 246, 0.18), transparent 46%),
+        radial-gradient(circle at 85% 82%, rgba(16, 185, 129, 0.14), transparent 48%),
+        linear-gradient(180deg, #e2ebf5 0%, #edf2f8 100%);
+    }
+
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --font-current: var(--font-sans);
+      --base-font-size: 16px;
+      --sidebar-compact-w: 68px;
+      --sidebar-expanded-w: 256px;
+      --card-default-w: 280px;
+      --card-max-w: 280px;
+      --card-max-h: 110px;
+      --radius-xl: 20px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-pill: 999px;
+      --ease-std: cubic-bezier(0.2, 0, 0, 1);
+      --ease-emph: cubic-bezier(0.3, 0, 0, 1);
+    }
+
+    [data-font="mono"] {
+      --font-current: var(--font-mono);
+      --base-font-size: 18.5px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background-color: var(--md-sys-color-surface);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--md-sys-color-on-surface);
+      font-family: var(--font-current);
+      font-size: var(--base-font-size);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    input, textarea, select {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--md-sys-color-outline-variant);
+      border-radius: var(--radius-pill);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--md-sys-color-outline); }
+
+    .icon-svg { width: 22px; height: 22px; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+    .icon-svg-sm { width: 17px; height: 17px; flex-shrink: 0; }
+    .icon-svg-lg { width: 28px; height: 28px; flex-shrink: 0; }
+
+    /* =========================================================================
+       APP SHELL & LEFT FOLDER RAIL
+       ========================================================================= */
+    .app-shell {
+      display: flex;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .folder-sidebar {
+      width: var(--sidebar-compact-w);
+      min-width: var(--sidebar-compact-w);
+      height: 100%;
+      background-color: var(--md-sys-color-surface-container-low);
+      border-right: 1px solid var(--md-sys-color-outline-variant);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px 8px;
+      transition: width 220ms var(--ease-emph), min-width 220ms var(--ease-emph), background-color 180ms var(--ease-std);
+      z-index: 25;
+      position: relative;
+    }
+
+    .folder-sidebar.expanded {
+      width: var(--sidebar-expanded-w);
+      min-width: var(--sidebar-expanded-w);
+      box-shadow: var(--md-shadow-2);
+    }
+
+    .sidebar-top { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
+
+    .sidebar-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 46px;
+      margin-bottom: 4px;
+    }
+
+    .folder-sidebar.expanded .sidebar-header-row { justify-content: space-between; padding: 0 6px; }
+
+    .brand-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.94em;
+      letter-spacing: 0.04em;
+      color: var(--md-sys-color-primary);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .folder-sidebar.expanded .brand-badge { display: flex; }
+
+    .toggle-rail-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--md-sys-color-on-surface-variant);
+      transition: background-color 150ms var(--ease-std), color 150ms var(--ease-std), transform 200ms var(--ease-emph);
+    }
+
+    .toggle-rail-btn:hover { background-color: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); }
+    .folder-sidebar.expanded .toggle-rail-btn svg { transform: rotate(180deg); }
+
+    .folder-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 2px;
+      flex: 1;
+    }
+
+    /* Строка папки: визуальный контейнер. Внутри — основная кнопка и отдельные кнопки действий
+       (никаких вложенных интерактивных элементов, доступно с клавиатуры). */
+    .folder-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 46px;
+      min-height: 46px;
+      width: 100%;
+      border-radius: var(--radius-md);
+      color: var(--md-sys-color-on-surface-variant);
+      transition: background-color 150ms var(--ease-std), color 150ms var(--ease-std);
+    }
+
+    .folder-row[draggable="true"] { cursor: grab; }
+    .folder-row[draggable="true"]:active { cursor: grabbing; }
+    .folder-row.drag-over {
+      outline: 2px dashed var(--md-sys-color-primary);
+      background-color: var(--md-sys-color-primary-container);
+    }
+    .folder-row.dragging { opacity: 0.45; }
+    .folder-row:hover { background-color: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); }
+    .folder-row.active {
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      font-weight: 600;
+    }
+
+    .folder-item {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border-radius: inherit;
+      color: inherit;
+      font-weight: inherit;
+      text-align: left;
+      -webkit-touch-callout: none;
+    }
+
+    .folder-sidebar:not(.expanded) .folder-item { justify-content: center; padding: 0; }
+
+    .folder-item-label {
+      display: none;
+      margin-left: 10px;
+      font-size: 0.9em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+    .folder-sidebar.expanded .folder-item-label { display: block; }
+
+    .folder-item-count {
+      display: none;
+      font-size: 0.75em;
+      opacity: 0.8;
+      margin-left: 4px;
+      padding: 1px 7px;
+      border-radius: var(--radius-pill);
+      background: rgba(128, 128, 128, 0.18);
+    }
+    .folder-sidebar.expanded .folder-item-count { display: inline-block; }
+
+    .folder-item-actions {
+      display: none;
+      align-items: center;
+      gap: 2px;
+      padding-right: 6px;
+      flex-shrink: 0;
+    }
+
+    .folder-sidebar.expanded .folder-row:hover .folder-item-actions,
+    .folder-sidebar.expanded .folder-row:focus-within .folder-item-actions { display: inline-flex; }
+
+    .folder-action-mini {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: inherit;
+      opacity: 0.8;
+    }
+    .folder-action-mini:hover { opacity: 1; background-color: var(--md-sys-color-surface-container-highest); color: var(--md-sys-color-on-surface); }
+    .folder-action-mini.del:hover { background-color: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); }
+
+    .sidebar-bottom {
+      padding-top: 8px;
+      border-top: 1px solid var(--md-sys-color-outline-variant);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+
+    .lock-sort-btn {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      width: 100%;
+      padding: 0 12px;
+      border-radius: var(--radius-md);
+      background-color: var(--md-sys-color-surface-container);
+      color: var(--md-sys-color-on-surface-variant);
+      font-weight: 600;
+      font-size: 0.84em;
+      transition: background-color 150ms var(--ease-std), color 150ms var(--ease-std);
+    }
+    .folder-sidebar:not(.expanded) .lock-sort-btn { justify-content: center; padding: 0; }
+    .lock-sort-btn:hover { background-color: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); }
+    .lock-sort-btn.locked { background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+    .lock-sort-label { display: none; margin-left: 10px; white-space: nowrap; }
+    .folder-sidebar.expanded .lock-sort-label { display: inline; }
+
+    .add-folder-btn {
+      display: flex;
+      align-items: center;
+      height: 44px;
+      width: 100%;
+      padding: 0 12px;
+      border-radius: var(--radius-md);
+      background-color: var(--md-sys-color-surface-container-high);
+      color: var(--md-sys-color-primary);
+      font-weight: 600;
+      font-size: 0.88em;
+      transition: background-color 150ms var(--ease-std), transform 140ms var(--ease-std);
+    }
+    .folder-sidebar:not(.expanded) .add-folder-btn { justify-content: center; padding: 0; }
+    .add-folder-btn:hover { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+    .add-folder-btn:active { transform: scale(0.97); }
+    .add-folder-label { display: none; margin-left: 10px; white-space: nowrap; }
+    .folder-sidebar.expanded .add-folder-label { display: inline; }
+
+    /* =========================================================================
+       MAIN WORKSPACE
+       ========================================================================= */
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 86px 16px 26px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .search-wrapper {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto 12px auto;
+      position: relative;
+      z-index: 20;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 52px;
+      padding: 0 18px;
+      border-radius: var(--radius-pill);
+      background-color: var(--md-sys-color-surface-container-lowest);
+      border: 2px solid var(--md-sys-color-outline);
+      box-shadow: var(--md-shadow-2);
+      transition: border-color 160ms var(--ease-std), box-shadow 160ms var(--ease-std);
+    }
+
+    [data-theme="light"] .search-box {
+      background-color: #ffffff;
+      border-color: #2563eb;
+      box-shadow: 0 4px 16px rgba(21, 88, 192, 0.16), 0 1px 4px rgba(15, 23, 42, 0.12);
+    }
+
+    .search-box:focus-within {
+      border-color: var(--md-sys-color-primary);
+      box-shadow: 0 0 0 3px rgba(21, 88, 192, 0.22), var(--md-shadow-3);
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 0.97em;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+    }
+    .search-input:focus-visible { outline: none; }
+    .search-input::placeholder { color: var(--md-sys-color-on-surface-variant); opacity: 0.85; font-size: 0.9em; }
+
+    .search-clear-btn {
+      display: none;
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-pill);
+      align-items: center;
+      justify-content: center;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    .search-clear-btn.visible { display: inline-flex; }
+    .search-clear-btn:hover { background-color: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); }
+
+    .at-commands-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background-color: var(--md-sys-color-surface-container-high);
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--md-shadow-3);
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 45;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .at-commands-dropdown.open { display: flex; }
+
+    .at-command-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      text-align: left;
+      transition: background-color 130ms var(--ease-std);
+    }
+    .at-command-item:hover,
+    .at-command-item.selected { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+
+    .at-cmd-name {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.88em;
+      color: var(--md-sys-color-primary);
+      white-space: nowrap;
+    }
+    .at-command-item:hover .at-cmd-name,
+    .at-command-item.selected .at-cmd-name { color: inherit; }
+
+    .at-cmd-desc { font-size: 0.84em; color: var(--md-sys-color-on-surface-variant); text-align: right; }
+    .at-command-item:hover .at-cmd-desc,
+    .at-command-item.selected .at-cmd-desc { color: inherit; opacity: 0.92; }
+
+    .search-hints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 7px;
+      padding: 0 10px;
+      font-size: 0.81em;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .search-hint-chip {
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      background-color: var(--md-sys-color-surface-container-low);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      color: inherit;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.95em;
+      transition: background-color 140ms var(--ease-std), color 140ms var(--ease-std);
+    }
+    .search-hint-chip:hover { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+
+    .workspace-header {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto 10px auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 34px;
+    }
+
+    .current-folder-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.18em;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      min-width: 0;
+    }
+    .current-folder-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .meta-pill {
+      font-size: 0.81em;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      background-color: var(--md-sys-color-surface-container-high);
+      color: var(--md-sys-color-on-surface-variant);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      white-space: nowrap;
+    }
+
+    /* =========================================================================
+       BOOKMARKS STAGE
+       ========================================================================= */
+    .bookmarks-stage {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      touch-action: pan-y;
+    }
+
+    /* Карточка имеет ширину --card-default-w (280px) и сжимается только если
+       не влезает в ширину столбца / окна (minmax(0, min(var(--card-min-w, 280px), var(--card-default-w, 280px)))). */
+    .bookmarks-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-cols, 3), minmax(0, min(var(--card-min-w, 280px), var(--card-default-w, 280px))));
+      grid-auto-rows: minmax(84px, var(--card-max-h, 110px));
+      gap: 14px;
+      flex: 1;
+      min-height: 0;
+      align-content: start;
+      justify-content: center;
+      overflow: hidden;
+      padding-top: 14px; /* место под всплывающие кнопки первой строки */
+    }
+
+    .bookmark-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      max-width: var(--card-default-w, 280px);
+      height: 100%;
+      max-height: var(--card-max-h, 110px);
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background-color: var(--card-alt-bg);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      color: var(--md-sys-color-on-surface);
+      box-shadow: var(--md-shadow-1);
+      transition: transform 170ms var(--ease-emph), border-color 170ms var(--ease-std), box-shadow 170ms var(--ease-std), opacity 140ms var(--ease-std);
+      min-width: 0;
+      min-height: 0;
+      overflow: visible;
+      cursor: grab;
+      -webkit-touch-callout: none;
+    }
+    .bookmark-card:active { cursor: grabbing; }
+    .bookmark-card.dragging { opacity: 0.4; }
+    .bookmark-card.drag-over { outline: 2px dashed var(--md-sys-color-primary); border-color: var(--md-sys-color-primary); }
+    .bookmark-card.alt-tone-1 { background-color: var(--card-alt-bg); }
+    .bookmark-card.alt-tone-2 { background-color: var(--card-alt-bg-2); }
+    .bookmark-card.alt-tone-3 { background-color: var(--card-alt-bg-3); }
+    .bookmark-card:hover,
+    .bookmark-card:focus-within {
+      border-color: var(--md-sys-color-primary);
+      transform: translateY(-2px);
+      box-shadow: var(--md-shadow-2);
+      z-index: 5;
+    }
+
+    .bookmark-favicon-pane {
+      width: clamp(32px, 34%, 56px);
+      height: clamp(32px, 56%, 64px);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Иконки сайтов и запасной «аватар» с буквой */
+    .fav { display: inline-flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+    .fav img { width: 100%; height: 100%; object-fit: contain; }
+    .fav-card { width: 100%; height: 100%; }
+    .fav-list { width: 24px; height: 24px; }
+    .fav-search { width: 20px; height: 20px; }
+    .fav-fallback {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 22%;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95em;
+      line-height: 1;
+    }
+    .fav-search .fav-fallback, .fav-list .fav-fallback { font-size: 0.72em; }
+
+    .bookmark-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 6px;
+      overflow: hidden;
+    }
+
+    /* Ссылка-заголовок растягивается на всю карточку (stretched link): нет вложенных интерактивных элементов */
+    .bookmark-title {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      font-size: 0.94em;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      text-align: left;
+      line-height: 1.25;
+      -webkit-user-drag: none;
+    }
+    .bookmark-title::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+    .bookmark-title:focus-visible { outline: none; }
+    .bookmark-card:has(.bookmark-title:focus-visible) { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+    .bookmark-tags-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 4px;
+      max-height: 44px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .tag-chip {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 7px;
+      border-radius: 6px;
+      font-size: 0.75em;
+      font-weight: 600;
+      line-height: 1.35;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform 120ms var(--ease-std), filter 120ms var(--ease-std);
+    }
+    .tag-chip:hover { transform: scale(1.04); filter: brightness(1.08); }
+    .tag-chip.c0 { background: var(--tag-bg-1); color: var(--tag-fg-1); }
+    .tag-chip.c1 { background: var(--tag-bg-2); color: var(--tag-fg-2); }
+    .tag-chip.c2 { background: var(--tag-bg-3); color: var(--tag-fg-3); }
+    .tag-chip.c3 { background: var(--tag-bg-4); color: var(--tag-fg-4); }
+    .tag-chip.tag-more {
+      cursor: default;
+      background: transparent;
+      border: 1px dashed var(--md-sys-color-outline);
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    .tag-chip.tag-more:hover { transform: none; filter: none; }
+
+    .bookmark-actions {
+      position: absolute;
+      top: -12px;
+      right: 6px;
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms var(--ease-std), transform 150ms var(--ease-std);
+      transform: translateY(2px);
+      background: var(--md-sys-color-surface-container-highest);
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: var(--radius-pill);
+      padding: 2px 4px;
+      box-shadow: var(--md-shadow-2);
+      z-index: 12;
+    }
+    .bookmark-card:hover .bookmark-actions,
+    .bookmark-card:focus-within .bookmark-actions { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    .mini-icon-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--md-sys-color-on-surface);
+    }
+    .mini-icon-btn:hover { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+    .mini-icon-btn.del:hover { background-color: var(--md-sys-color-error); color: var(--md-sys-color-on-error); }
+
+    /* Тач-устройства: действия всегда видны, цели крупнее */
+    @media (hover: none) {
+      .bookmark-actions { opacity: 1; pointer-events: auto; transform: none; }
+      .list-actions { opacity: 1; }
+      .folder-sidebar.expanded .folder-item-actions { display: inline-flex; }
+    }
+    @media (pointer: coarse) {
+      .mini-icon-btn { width: 34px; height: 34px; }
+      .bookmark-actions { top: -16px; padding: 3px 5px; }
+      .folder-action-mini { width: 34px; height: 34px; }
+      .tag-chip { padding: 3px 9px; }
+    }
+
+    /* List view */
+    .bookmarks-list-frame {
+      flex: 1;
+      min-height: 0;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      background-color: var(--md-sys-color-surface-container-low);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bookmarks-list-container { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 6px 4px 0; }
+    .bookmarks-list-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+    .bookmarks-list-group:nth-of-type(odd) .list-row-main,
+    .bookmarks-list-group:nth-of-type(odd) .list-row-tags { background-color: var(--card-alt-bg); }
+    .bookmarks-list-group:nth-of-type(even) .list-row-main,
+    .bookmarks-list-group:nth-of-type(even) .list-row-tags { background-color: var(--card-alt-bg-2); }
+    .bookmarks-list-group:hover .list-row-main,
+    .bookmarks-list-group:hover .list-row-tags { background-color: var(--md-sys-color-surface-container-highest); }
+    .bookmarks-list-group.dragging { opacity: 0.45; }
+    .bookmarks-list-group.drag-over .list-row-main { outline: 2px dashed var(--md-sys-color-primary); }
+
+    .list-row-main td {
+      padding: 10px 14px 4px 14px;
+      vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.94em;
+    }
+    .list-row-tags td {
+      padding: 2px 14px 10px 14px;
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      font-size: 0.78em;
+    }
+
+    .list-link {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
+    .list-link:hover { color: var(--md-sys-color-primary); text-decoration: underline; }
+
+    .list-url-cell {
+      font-size: 0.84em;
+      color: var(--md-sys-color-on-surface-variant);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Кнопки действий в режиме списка (раньше были скрыты навсегда) */
+    .list-actions {
+      display: inline-flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 150ms var(--ease-std);
+    }
+    .bookmarks-list-group:hover .list-actions,
+    .bookmarks-list-group:focus-within .list-actions { opacity: 1; }
+
+    /* Search results */
+    .search-results-container {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .search-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 16px;
+      border-radius: var(--radius-md);
+      background-color: var(--md-sys-color-surface-container-low);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      text-decoration: none;
+      color: var(--md-sys-color-on-surface);
+      font-size: 0.94em;
+      transition: background-color 150ms var(--ease-std), border-color 150ms var(--ease-std);
+    }
+    .search-result-row:hover { background-color: var(--md-sys-color-surface-container-high); border-color: var(--md-sys-color-primary); }
+    .search-result-row.first-hit { border-color: var(--md-sys-color-primary); }
+    .first-hit-badge {
+      font-family: var(--font-mono);
+      font-size: 0.78em;
+      padding: 1px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--md-sys-color-outline);
+      color: var(--md-sys-color-on-surface-variant);
+      white-space: nowrap;
+    }
+
+    .search-result-chain { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; flex-wrap: wrap; }
+    .chain-sep { color: var(--md-sys-color-outline); font-weight: 700; }
+
+    .search-result-folder {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.84em;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      background-color: var(--md-sys-color-secondary-container);
+      color: var(--md-sys-color-on-secondary-container);
+    }
+
+    .search-result-name { font-weight: 700; font-size: 0.94em; }
+    .search-result-name mark {
+      background: var(--tag-bg-3);
+      color: inherit;
+      border-radius: 3px;
+      padding: 0 2px;
+    }
+    .search-result-tags { font-family: var(--font-mono); font-size: 0.81em; color: var(--md-sys-color-tertiary); white-space: nowrap; }
+
+    /* Carousel dots */
+    .carousel-footer { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 8px; min-height: 20px; }
+    .carousel-indicator { display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    .carousel-dot {
+      position: relative;
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-pill);
+      background-color: var(--md-sys-color-outline-variant);
+      transition: width 200ms var(--ease-emph), background-color 200ms var(--ease-std);
+      padding: 0;
+    }
+    .carousel-dot::after { content: ""; position: absolute; inset: -14px -4px; } /* увеличенная область нажатия */
+    .carousel-dot:hover { background-color: var(--md-sys-color-outline); }
+    .carousel-dot.active { width: 26px; background-color: var(--md-sys-color-primary); }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 1em;
+      color: var(--md-sys-color-on-surface-variant);
+      text-align: center;
+      padding: 24px;
+      border: 1px dashed var(--md-sys-color-outline-variant);
+      border-radius: var(--radius-xl);
+      background-color: rgba(128, 128, 128, 0.04);
+    }
+
+    /* =========================================================================
+       FLOATING CONFIGURATION PANEL
+       ========================================================================= */
+    .config-fab-dock {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      padding: 8px;
+      border-radius: var(--radius-pill);
+      background-color: var(--md-sys-color-surface-container-high);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      box-shadow: var(--md-shadow-3);
+      z-index: 30;
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .config-fab-dock::-webkit-scrollbar { display: none; }
+
+    .config-btn {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      flex-shrink: 0;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--md-sys-color-on-surface);
+      transition: background-color 150ms var(--ease-std), color 150ms var(--ease-std), transform 140ms var(--ease-std), opacity 150ms var(--ease-std);
+    }
+    .config-btn:hover:not(:disabled) { background-color: var(--md-sys-color-surface-container-highest); color: var(--md-sys-color-primary); }
+    .config-btn:active:not(:disabled) { transform: scale(0.93); }
+    .config-btn.active-state { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+    .config-btn.undo-dimmed { opacity: 0.35; color: var(--md-sys-color-on-surface-variant); cursor: default; }
+    .config-btn.undo-active { opacity: 1; color: var(--md-sys-color-tertiary); background-color: rgba(129, 201, 149, 0.14); }
+    .config-btn.unsaved-dirty {
+      background-color: var(--md-sys-color-error);
+      color: var(--md-sys-color-on-error);
+      box-shadow: 0 0 0 2px rgba(242, 139, 130, 0.35);
+    }
+    .config-btn.unsaved-dirty:hover { filter: brightness(1.08); }
+    #cfgMoreBtn { display: none; }
+
+    /* =========================================================================
+       POPUPS & MODALS
+       ========================================================================= */
+    .popover-card {
+      position: fixed;
+      background-color: var(--md-sys-color-surface-container-high);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--md-shadow-3);
+      padding: 16px;
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      animation: popIn 160ms var(--ease-emph);
+    }
+    .popover-card.open { display: flex; }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.96) translateY(4px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .grid-matrix-picker { right: 76px; bottom: 16px; width: 256px; }
+
+    .matrix-cells {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      padding: 6px;
+      background-color: var(--md-sys-color-surface-container-lowest);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--md-sys-color-outline-variant);
+    }
+
+    .matrix-cell {
+      aspect-ratio: 1;
+      border-radius: 3px;
+      border: 1px solid var(--md-sys-color-outline-variant);
+      background-color: var(--md-sys-color-surface-container);
+      transition: background-color 80ms linear, border-color 80ms linear;
+    }
+    .matrix-cell.highlighted { background-color: var(--md-sys-color-primary); border-color: var(--md-sys-color-primary); }
+    .matrix-cell:disabled { opacity: 0.22; cursor: not-allowed; }
+
+    .matrix-readout { text-align: center; font-size: 0.88em; font-weight: 700; color: var(--md-sys-color-primary); }
+
+    .folder-creator-popover { left: 78px; bottom: 16px; width: 332px; max-width: calc(100vw - 92px); }
+
+    .more-menu-popover { right: 8px; bottom: 64px; width: 210px; padding: 10px; gap: 6px; }
+    .more-menu-popover button { width: 100%; justify-content: flex-start; }
+
+    .icon-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      max-height: 184px;
+      overflow-y: auto;
+      padding: 6px;
+      border-radius: var(--radius-sm);
+      background-color: var(--md-sys-color-surface-container-lowest);
+      border: 1px solid var(--md-sys-color-outline-variant);
+    }
+
+    .icon-option-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    .icon-option-btn:hover { background-color: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); }
+    .icon-option-btn.selected {
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      outline: 2px solid var(--md-sys-color-primary);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: var(--md-sys-color-scrim);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 60;
+      backdrop-filter: blur(2px);
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal-dialog {
+      width: 100%;
+      max-width: 460px;
+      max-height: 90dvh;
+      overflow-y: auto;
+      background-color: var(--md-sys-color-surface-container-low);
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--md-shadow-3);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: popIn 170ms var(--ease-emph);
+    }
+
+    .modal-title { font-size: 1.12em; font-weight: 700; color: var(--md-sys-color-on-surface); }
+
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    .field-label { font-size: 0.84em; font-weight: 600; color: var(--md-sys-color-on-surface-variant); }
+
+    .field-input, .field-select {
+      width: 100%;
+      height: 42px;
+      padding: 0 38px 0 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--md-sys-color-outline);
+      background-color: var(--md-sys-color-surface-container-lowest);
+      color: var(--md-sys-color-on-surface);
+      font-size: 0.91em;
+      outline: none;
+      transition: border-color 140ms var(--ease-std);
+    }
+    .field-input { padding: 0 12px; }
+
+    .field-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239aa5b4' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px 16px;
+    }
+    .field-select option { background-color: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface); }
+    .field-input:focus, .field-select:focus { border-color: var(--md-sys-color-primary); }
+    .field-input:focus-visible, .field-select:focus-visible { outline: none; }
+    .field-input::placeholder { color: var(--md-sys-color-on-surface-variant); opacity: 0.58; }
+
+    .modal-body-text { font-size: 0.91em; line-height: 1.55; color: var(--md-sys-color-on-surface-variant); }
+    .modal-body-text p { margin-bottom: 10px; }
+
+    .check-row { display: flex; align-items: center; gap: 8px; font-size: 0.86em; cursor: pointer; }
+    .check-row input { width: 18px; height: 18px; accent-color: var(--md-sys-color-primary); }
+
+    .inline-link-btn { color: var(--md-sys-color-primary); text-decoration: underline; font-weight: 600; font-size: inherit; padding: 0; }
+
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+
+    .btn-tonal, .btn-filled, .btn-outline, .btn-danger {
+      height: 40px;
+      padding: 0 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88em;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: filter 140ms var(--ease-std), background-color 140ms var(--ease-std);
+    }
+    .btn-filled { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+    .btn-filled:hover { filter: brightness(1.08); }
+    .btn-tonal { background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+    .btn-tonal:hover { filter: brightness(1.06); }
+    .btn-outline { border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-on-surface); }
+    .btn-outline:hover { background-color: var(--md-sys-color-surface-container-high); }
+    .btn-danger { background-color: var(--md-sys-color-error); color: var(--md-sys-color-on-error); }
+    .btn-danger:hover { filter: brightness(1.08); }
+
+    /* Toast */
+    .toast-bar {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(80px);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      max-width: min(92vw, 640px);
+      background-color: var(--md-sys-color-surface-container-highest);
+      color: var(--md-sys-color-on-surface);
+      border: 1px solid var(--md-sys-color-outline);
+      padding: 10px 20px;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--md-shadow-3);
+      font-size: 0.88em;
+      font-weight: 600;
+      z-index: 80;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 200ms var(--ease-emph), opacity 200ms var(--ease-std);
+    }
+    .toast-bar.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast-bar.has-action { pointer-events: auto; }
+    .toast-action { color: var(--md-sys-color-primary); font-weight: 700; font-size: inherit; padding: 2px 6px; border-radius: var(--radius-sm); }
+    .toast-action:hover { background-color: var(--md-sys-color-surface-container-high); }
+    .toast-action[hidden] { display: none; }
+
+    /* =========================================================================
+       MOBILE
+       ========================================================================= */
+    @media (max-width: 720px) {
+      :root { --sidebar-compact-w: 58px; }
+
+      .main-content { padding: 12px 12px 78px 12px; }
+
+      .folder-sidebar { width: var(--sidebar-compact-w); min-width: var(--sidebar-compact-w); padding: 10px 5px; }
+
+      .folder-sidebar.expanded {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 68px;
+        height: auto;
+        width: 230px;
+        min-width: 230px;
+        z-index: 40;
+      }
+
+      .search-box { height: 46px; padding: 0 14px; }
+      .search-hints { display: none; }
+
+      .config-fab-dock {
+        left: calc(var(--sidebar-compact-w) + 6px);
+        right: 8px;
+        bottom: 8px;
+        flex-direction: row;
+        justify-content: space-evenly;
+        gap: 2px;
+        padding: 5px 6px;
+        border-radius: var(--radius-pill);
+        max-height: none;
+        overflow: visible;
+      }
+
+      .config-btn { width: 40px; height: 40px; }
+      .config-btn .icon-svg { width: 21px; height: 21px; }
+      .config-btn.rare-action { display: none; }
+      #cfgMoreBtn { display: flex; }
+
+      .grid-matrix-picker { left: 50%; right: auto; bottom: 64px; transform: translateX(-50%); }
+      .folder-creator-popover { left: calc(var(--sidebar-compact-w) + 8px); bottom: 70px; }
+      .toast-bar { bottom: 68px; }
+      .bookmark-favicon-pane { width: 32px; height: 36px; }
+      .bookmark-title { font-size: 0.86em; }
+      .tag-chip { font-size: 0.72em; padding: 1px 5px; }
+    }
+
+    @media (max-width: 720px) and (pointer: coarse) {
+      .tag-chip { padding: 3px 7px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- LEFT FOLDER PANEL -->
+    <aside id="folderSidebar" class="folder-sidebar" aria-label="Folders">
+      <div class="sidebar-top">
+        <div class="sidebar-header-row">
+          <div class="brand-badge">
+            <span id="brandLogoSlot"></span>
+            <span>Bookmarks</span>
+          </div>
+          <button id="toggleRailBtn" class="toggle-rail-btn" type="button" data-i18n-title="tipToggleRail">
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+        <div id="folderList" class="folder-list"></div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="lockSortBtn" class="lock-sort-btn" type="button">
+          <span id="lockSortIconSlot"></span>
+          <span class="lock-sort-label" data-i18n="lockSort">Lock Sort</span>
+        </button>
+
+        <button id="addFolderBtn" class="add-folder-btn" type="button" data-i18n-title="newFolder">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 17v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v4"></path>
+            <circle cx="18" cy="18" r="4.5" fill="var(--md-sys-color-surface-container-high)" stroke="currentColor" stroke-width="2"></circle>
+            <line x1="18" y1="16" x2="18" y2="20" stroke-width="2"></line>
+            <line x1="16" y1="18" x2="20" y2="18" stroke-width="2"></line>
+          </svg>
+          <span class="add-folder-label" data-i18n="newFolder">New Folder</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT WORKSPACE -->
+    <main class="main-content">
+      <div class="search-wrapper">
+        <div class="search-box">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--md-sys-color-primary);" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input id="globalSearchInput" class="search-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" data-i18n-title="searchPlaceholderShort" />
+          <button id="clearSearchBtn" class="search-clear-btn" type="button" data-i18n-title="tipClearSearch">
+            <svg class="icon-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div id="atCommandsDropdown" class="at-commands-dropdown" role="listbox"></div>
+        <div class="search-hints" id="searchHintsBar">
+          <button type="button" class="search-hint-chip" data-sample="#tag">#tag</button>
+          <button type="button" class="search-hint-chip" data-sample=".domain">.domain</button>
+          <button type="button" class="search-hint-chip" data-sample="/folder">/folder</button>
+          <button type="button" class="search-hint-chip" data-sample="text">text</button>
+        </div>
+      </div>
+
+      <div class="workspace-header">
+        <div id="workspaceTitle" class="current-folder-title"></div>
+        <div id="workspaceMeta" class="meta-pill"></div>
+      </div>
+
+      <div id="bookmarksStage" class="bookmarks-stage"></div>
+
+      <div id="carouselFooter" class="carousel-footer">
+        <div id="carouselIndicator" class="carousel-indicator"></div>
+      </div>
+    </main>
+
+    <!-- FLOATING CONFIGURATION PANEL -->
+    <nav id="configDock" class="config-fab-dock">
+      <button id="cfgUndoBtn" class="config-btn undo-dimmed" type="button" data-i18n-title="tipUndo">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 14 4 9 9 4"></polyline>
+          <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+        </svg>
+      </button>
+
+      <button id="cfgGridSizeBtn" class="config-btn" type="button" data-i18n-title="tipGrid">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      </button>
+
+      <button id="cfgViewModeBtn" class="config-btn" type="button" data-i18n-title="tipView">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+      </button>
+
+      <button id="cfgThemeBtn" class="config-btn rare-action" type="button" data-i18n-title="tipTheme">
+        <svg id="themeModeIcon" class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </button>
+
+      <button id="cfgFontBtn" class="config-btn rare-action" type="button" data-i18n-title="tipFont">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 7 4 4 20 4 20 7"></polyline>
+          <line x1="9" y1="20" x2="15" y2="20"></line>
+          <line x1="12" y1="4" x2="12" y2="20"></line>
+        </svg>
+      </button>
+
+      <button id="cfgLangBtn" class="config-btn rare-action" type="button" data-i18n-title="tipLang">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+      </button>
+
+      <button id="cfgMoreBtn" class="config-btn" type="button" data-i18n-title="tipMore">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="5" cy="12" r="1"></circle>
+          <circle cx="12" cy="12" r="1"></circle>
+          <circle cx="19" cy="12" r="1"></circle>
+        </svg>
+      </button>
+
+      <button id="cfgIoBtn" class="config-btn" type="button" data-i18n-title="tipIo">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </button>
+
+      <button id="cfgAddBookmarkBtn" class="config-btn" type="button" data-i18n-title="tipAdd">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8"></path>
+          <circle cx="18" cy="18" r="4.5" fill="var(--md-sys-color-surface-container-high)" stroke="currentColor" stroke-width="2"></circle>
+          <line x1="18" y1="16" x2="18" y2="20" stroke-width="2"></line>
+          <line x1="16" y1="18" x2="20" y2="18" stroke-width="2"></line>
+        </svg>
+      </button>
+    </nav>
+  </div>
+
+  <!-- POPOVER: GRID PICKER -->
+  <div id="gridMatrixPopover" class="popover-card grid-matrix-picker" role="dialog" data-i18n-title="tipGrid">
+    <div style="font-size: 0.84em; font-weight: 600; color: var(--md-sys-color-on-surface-variant);" data-i18n="gridPickerTitle">Grid Layout (Cols × Rows)</div>
+    <div id="matrixCells" class="matrix-cells"></div>
+    <div id="matrixReadout" class="matrix-readout">3 × 3</div>
+  </div>
+
+  <!-- POPOVER: FOLDER CREATE/EDIT -->
+  <div id="folderCreatorPopover" class="popover-card folder-creator-popover" role="dialog" aria-labelledby="folderPopTitle">
+    <div id="folderPopTitle" style="font-size: 0.94em; font-weight: 700;"></div>
+    <div class="field-group">
+      <label class="field-label" for="newFolderNameInput" data-i18n="folderNameLabel">Folder Name</label>
+      <input id="newFolderNameInput" class="field-input" type="text" maxlength="40" placeholder="Home" />
+    </div>
+    <div class="field-group">
+      <span class="field-label" data-i18n="chooseIconLabel">Select Icon (100 built-in)</span>
+      <div id="folderIconPickerGrid" class="icon-picker-grid"></div>
+    </div>
+    <div class="modal-actions" style="margin-top: 2px;">
+      <button id="cancelFolderBtn" class="btn-outline" type="button" data-i18n="cancel">Cancel</button>
+      <button id="confirmFolderBtn" class="btn-filled" type="button"></button>
+    </div>
+  </div>
+
+  <!-- POPOVER: MOBILE "MORE" MENU -->
+  <div id="moreMenuPopover" class="popover-card more-menu-popover" role="menu">
+    <button id="moreThemeBtn" class="btn-tonal" type="button" role="menuitem" data-i18n="menuTheme">Theme</button>
+    <button id="moreFontBtn" class="btn-tonal" type="button" role="menuitem" data-i18n="menuFont">Font</button>
+    <button id="moreLangBtn" class="btn-tonal" type="button" role="menuitem" data-i18n="menuLang">Language</button>
+  </div>
+
+  <!-- MODAL: BOOKMARK -->
+  <div id="bookmarkModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="bookmarkModalTitle">
+    <div class="modal-dialog">
+      <div id="bookmarkModalTitle" class="modal-title"></div>
+
+      <div class="field-group">
+        <label class="field-label" for="bmFolderSelect" data-i18n="folderSelectLabel">Folder</label>
+        <select id="bmFolderSelect" class="field-select"></select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="bmTitleInput" data-i18n="bmTitleLabel">Bookmark Name</label>
+        <input id="bmTitleInput" class="field-input" type="text" maxlength="120" placeholder="Google" />
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="bmUrlInput" data-i18n="bmUrlLabel">Website / Resource URL</label>
+        <input id="bmUrlInput" class="field-input" type="text" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://google.com" />
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="bmIconInput" data-i18n="bmIconLabel">Icon URL (default &lt;favicon&gt;)</label>
+        <input id="bmIconInput" class="field-input" type="text" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="<favicon>" />
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="bmTagsInput" data-i18n="bmTagsLabel">Tags (#tag1 #tag2 #tag3)</label>
+        <input id="bmTagsInput" class="field-input" type="text" autocapitalize="off" spellcheck="false" placeholder="#search #web #tools" />
+      </div>
+
+      <div class="modal-actions">
+        <button id="bmCancelBtn" class="btn-outline" type="button" data-i18n="cancel">Cancel</button>
+        <button id="bmSaveBtn" class="btn-filled" type="button" data-i18n="save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EXPORT / IMPORT -->
+  <div id="ioModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ioModalTitle">
+    <div class="modal-dialog">
+      <div id="ioModalTitle" class="modal-title" data-i18n="ioTitle">Backup &amp; Restore (JSON)</div>
+      <p id="ioStatusDesc" class="modal-body-text"></p>
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button id="exportJsonBtn" class="btn-filled" type="button" style="flex: 1;" data-i18n="exportJson">Export JSON</button>
+        <button id="importJsonTriggerBtn" class="btn-tonal" type="button" style="flex: 1;" data-i18n="importJson">Import JSON</button>
+        <input id="importFileInput" type="file" accept=".json,application/json" style="display: none;" />
+      </div>
+
+      <div id="importChoiceBox" style="display: none; flex-direction: column; gap: 10px; padding: 12px; border-radius: var(--radius-sm); background: var(--md-sys-color-surface-container-lowest); border: 1px solid var(--md-sys-color-outline-variant);">
+        <div id="importChoiceText" style="font-size: 0.88em; font-weight: 600;"></div>
+        <label id="importSettingsRow" class="check-row" style="display: none;">
+          <input id="importSettingsChk" type="checkbox" checked />
+          <span data-i18n="importApplySettings">Also apply interface settings from the file</span>
+        </label>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="importMergeBtn" class="btn-tonal" type="button" data-i18n="importAddNew">Add / Merge</button>
+          <button id="importOverwriteBtn" class="btn-danger" type="button" data-i18n="importOverwriteAll">Overwrite All</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="ioCloseBtn" class="btn-outline" type="button" data-i18n="close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: WELCOME / LICENCE -->
+  <div id="infoModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+    <div class="modal-dialog">
+      <div id="infoModalTitle" class="modal-title"></div>
+      <div id="infoModalContent" class="modal-body-text"></div>
+      <div class="modal-actions">
+        <button id="infoModalCloseBtn" class="btn-filled" type="button" data-i18n="close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRM -->
+  <div id="confirmModalBackdrop" class="modal-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+    <div class="modal-dialog">
+      <div id="confirmTitle" class="modal-title"></div>
+      <p id="confirmText" class="modal-body-text"></p>
+      <div class="modal-actions">
+        <button id="confirmCancelBtn" class="btn-outline" type="button" data-i18n="cancel">Cancel</button>
+        <button id="confirmOkBtn" class="btn-danger" type="button"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toastBar" class="toast-bar" role="status" aria-live="polite">
+    <span id="toastText"></span>
+    <button id="toastAction" class="toast-action" type="button" hidden></button>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const $ = (id) => document.getElementById(id);
+
+      /* =====================================================================
+         CONSTANTS
+         ===================================================================== */
+      const DATA_VERSION = 3;
+      const DATA_KEY = "bookmarks_data_v3";      // папки и закладки (+ флаг «не экспортировано»)
+      const PREFS_KEY = "bookmarks_prefs_v3";    // настройки вида; раздельное хранение исключает
+                                                 // затирание данных устаревшей вкладкой
+      const LEGACY_KEY = "bookmarks_single_user_v2";
+      const FALLBACK_SEARCH_URL = "https://www.google.com/search?q="; // Enter по тексту без совпадений
+      const ALLOWED_PROTOCOLS = ["http:", "https:", "ftp:", "mailto:"];
+      const MAX_UNDO = 50;
+      const GRID_GAP = 14;
+      const GRID_TOP_PAD = 14;
+      const CARD_DEFAULT_W = 280;
+      const CARD_MAX_W = 280;
+      const COARSE = window.matchMedia("(pointer: coarse)");
+      const PREF_KEYS = ["sidebarExpanded", "folderSortLocked", "gridCols", "gridRows", "viewMode", "theme", "font", "lang", "welcomeShown"];
+      const FAV_BOX = { card: 40, list: 24, search: 20 };
+
+      /* =====================================================================
+         100 PREDEFINED SVG ICONS
+         ===================================================================== */
+      const ICON_PATHS = [
+        '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+        '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+        '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+        '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+        '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+        '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+        '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+        '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+        '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/>',
+        '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+        '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+        '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+        '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+        '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+        '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>',
+        '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+        '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+        '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+        '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+        '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+        '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>',
+        '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+        '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+        '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
+        '<rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>',
+        '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>',
+        '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+        '<rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+        '<rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+        '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+        '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+        '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+        '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+        '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
+        '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+        '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+        '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+        '<polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>',
+        '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
+        '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+        '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+        '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+        '<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>',
+        '<path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/>',
+        '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>',
+        '<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+        '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+        '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+        '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+        '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+        '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+        '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+        '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+        '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+        '<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>',
+        '<path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>',
+        '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+        '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+        '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
+        '<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>',
+        '<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>',
+        '<path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
+        '<path d="M6.5 6.5l11 11L12 23V1l5.5 5.5-11 11"/>',
+        '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+        '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+        '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+        '<rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/>',
+        '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+        '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+        '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+        '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+        '<path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.49 9A9 9 0 0 0 15 3.51"/>',
+        '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+        '<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>',
+        '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+        '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+        '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+        '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+        '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+        '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+        '<polyline points="20 6 9 17 4 12"/>',
+        '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+        '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>',
+        '<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>',
+        '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+        '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+        '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+        '<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>',
+        '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+        '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>',
+        '<polygon points="5 3 19 12 5 21 5 3"/>',
+        '<polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/>',
+        '<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>',
+        '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>',
+        '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>',
+        '<path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/>',
+        '<rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/>',
+        '<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/>',
+        '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'
+      ];
+
+      const PAPERCLIP_SVG = '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+      const PENCIL_SVG = '<svg class="icon-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+
+      const AT_COMMANDS = [
+        { cmd: "@export", descRu: "Экспорт резервной копии в JSON", descEn: "Export backup to JSON" },
+        { cmd: "@import", descRu: "Импорт закладок и папок из JSON", descEn: "Import bookmarks and folders from JSON" },
+        { cmd: "@clear", descRu: "Сброс localStorage (с подтверждением)", descEn: "Reset localStorage (with confirmation)" },
+        { cmd: "@undo", descRu: "Отменить последнее действие", descEn: "Undo the last action" },
+        { cmd: "@licence", descRu: "Открыть текст лицензии", descEn: "Open licence text" },
+        { cmd: "@welcome", descRu: "Открыть приветственное окно", descEn: "Open welcome modal" }
+      ];
+
+      function renderSvgIcon(index, extraClass = "icon-svg") {
+        const safeIdx = Number.isInteger(index) && index >= 0 && index < ICON_PATHS.length ? index : 1;
+        return `<svg class="${extraClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[safeIdx]}</svg>`;
+      }
+
+      /* =====================================================================
+         LOCALIZATION
+         ===================================================================== */
+      const ruPlural = new Intl.PluralRules("ru");
+      const I18N = {
+        en: {
+          newFolder: "New Folder",
+          editFolderTitle: "Edit Folder",
+          deleteFolderTitle: "Delete folder",
+          lockSort: "Lock Sort",
+          unlockSort: "Unlock Sort",
+          sortLockedToast: "Folder sorting is locked",
+          sortUnlockedToast: "Folder sorting is unlocked",
+          searchPlaceholder: "Search #tag, .domain, /folder, text or @export @import @clear @undo @licence @welcome",
+          searchPlaceholderShort: "Search",
+          gridPickerTitle: "Grid Layout (Cols × Rows)",
+          createFolderTitle: "New Folder",
+          folderNameLabel: "Folder Name",
+          chooseIconLabel: "Select Icon (100 built-in)",
+          cancel: "Cancel",
+          create: "Create",
+          save: "Save",
+          close: "Close",
+          delete: "Delete",
+          undo: "Undo",
+          confirm: "Confirm",
+          addBookmarkTitle: "Add Bookmark",
+          editBookmarkTitle: "Edit Bookmark",
+          deleteBookmarkTitle: "Delete bookmark",
+          folderSelectLabel: "Folder",
+          bmTitleLabel: "Bookmark Name",
+          bmUrlLabel: "Website / Resource URL",
+          bmIconLabel: "Icon URL (default <favicon>)",
+          bmTagsLabel: "Tags (#tag1 #tag2 #tag3)",
+          ioTitle: "Backup & Restore (JSON)",
+          exportJson: "Export JSON",
+          importJson: "Import JSON",
+          importApplySettings: "Also apply interface settings from the file",
+          importAddNew: "Add / Merge",
+          importOverwriteAll: "Overwrite All",
+          importPreview: (f, b, s) => `File contains ${f} folder(s) and ${b} bookmark(s)${s ? `; ${s} entries with an invalid URL will be skipped` : ""}. How should they be applied? Merge adds new folders and skips bookmarks whose URL already exists in a folder with the same name.`,
+          importResult: (f, b, s) => `Imported: ${f} folder(s), ${b} bookmark(s)${s ? `, skipped ${s}` : ""}`,
+          importNewerVersion: "The file was created by a newer version of the app",
+          importWrongApp: "This JSON was not exported from Bookmarks",
+          unsavedWarning: "Unsaved changes exist in localStorage! Export to JSON before clearing browser data.",
+          allSavedWarning: "All local changes have been exported to JSON.",
+          emptyFolder: "No bookmarks in this folder yet. Click the bookmark+ button to add one.",
+          emptySearch: "No bookmarks match your search query.",
+          searchResultsTitle: "Search Results",
+          bookmarkCount: (n) => `${n} ${n === 1 ? "bookmark" : "bookmarks"}`,
+          pageOf: (p, total) => `Page ${p} / ${total}`,
+          moreTags: (list) => `Hidden tags: ${list}`,
+          folderCreated: "Folder created",
+          folderUpdated: "Folder updated",
+          folderDeleted: "Folder removed",
+          bookmarkSaved: "Bookmark saved",
+          bookmarkDeleted: "Bookmark deleted",
+          bookmarkMoved: (name) => `Moved to “${name}”`,
+          undoDone: "Undone",
+          redoDone: "Redone",
+          nothingToUndo: "Nothing to undo",
+          nothingToRedo: "Nothing to redo",
+          exportedOk: "JSON backup downloaded",
+          clearedOk: "localStorage reset to default",
+          invalidJson: "Invalid Bookmarks JSON file",
+          needTitleUrl: "Please enter both bookmark name and URL",
+          invalidUrl: "Invalid or unsupported URL (allowed: http, https, ftp, mailto)",
+          needFolderName: "Please enter a folder name",
+          cannotDeleteLast: "At least one folder must remain",
+          storageError: "Could not save to localStorage (storage full or unavailable). Export to JSON now!",
+          corruptNotice: "Saved data was corrupted. A raw copy was kept in localStorage (key bookmarks_corrupt_backup_*).",
+          skippedInvalid: (n) => `Skipped ${n} bookmark(s) with an invalid URL`,
+          syncedFromOtherTab: "Updated from another tab",
+          openingWebSearch: "No bookmarks found — searching the web",
+          confirmClearTitle: "Reset everything?",
+          confirmClearText: "All folders, bookmarks and settings will be removed from this browser. Export a JSON backup first if you need your data.",
+          confirmClearOk: "Reset",
+          confirmDeleteFolderTitle: "Delete folder?",
+          confirmDeleteFolderText: (name, n) => `Folder “${name}” and all its bookmarks (${n}) will be deleted. You can undo this with Ctrl+Z.`,
+          welcomeTitle: "Welcome to Bookmarks",
+          licenceTitle: "Licence (@licence)",
+          licenceLinkText: "@licence",
+          menuTheme: "Theme",
+          menuFont: "Font",
+          menuLang: "Language",
+          tipToggleRail: "Toggle folders panel",
+          tipClearSearch: "Clear search",
+          tipUndo: "Undo (Ctrl+Z)",
+          tipGrid: "Grid dimensions",
+          tipView: "Toggle grid / list view",
+          tipTheme: "Toggle light / dark theme",
+          tipFont: "Toggle sans / monospace font",
+          tipLang: "Switch language",
+          tipMore: "More settings",
+          tipIo: "Export / import JSON",
+          tipAdd: "Add bookmark"
+        },
+        ru: {
+          newFolder: "Новая папка",
+          editFolderTitle: "Редактировать папку",
+          deleteFolderTitle: "Удалить папку",
+          lockSort: "Заблокировать",
+          unlockSort: "Разблокировать",
+          sortLockedToast: "Сортировка папок заблокирована",
+          sortUnlockedToast: "Сортировка папок разблокирована",
+          searchPlaceholder: "Поиск #тег, .домен, /папка, текст или @export @import @clear @undo @licence @welcome",
+          searchPlaceholderShort: "Поиск",
+          gridPickerTitle: "Компоновка сетки (Столбцы × Строки)",
+          createFolderTitle: "Новая папка",
+          folderNameLabel: "Название папки",
+          chooseIconLabel: "Выберите иконку (100 встроенных)",
+          cancel: "Отмена",
+          create: "Создать",
+          save: "Сохранить",
+          close: "Закрыть",
+          delete: "Удалить",
+          undo: "Отменить",
+          confirm: "Подтвердить",
+          addBookmarkTitle: "Новая закладка",
+          editBookmarkTitle: "Редактировать закладку",
+          deleteBookmarkTitle: "Удалить закладку",
+          folderSelectLabel: "Папка",
+          bmTitleLabel: "Название закладки",
+          bmUrlLabel: "URL-сайта / ресурса",
+          bmIconLabel: "URL для иконки (по умолчанию <favicon>)",
+          bmTagsLabel: "Список тегов (#tag1 #tag2 #tag3)",
+          ioTitle: "Экспорт и импорт (JSON)",
+          exportJson: "Экспорт JSON",
+          importJson: "Импорт JSON",
+          importApplySettings: "Применить также настройки интерфейса из файла",
+          importAddNew: "Добавить / объединить",
+          importOverwriteAll: "Полностью перезаписать",
+          importPreview: (f, b, s) => `В файле папок: ${f}, закладок: ${b}${s ? `; записей с недопустимым URL будет пропущено: ${s}` : ""}. Как применить? «Объединить» добавит новые папки и пропустит закладки, URL которых уже есть в папке с тем же названием.`,
+          importResult: (f, b, s) => `Импортировано: папок ${f}, закладок ${b}${s ? `, пропущено ${s}` : ""}`,
+          importNewerVersion: "Файл создан более новой версией приложения",
+          importWrongApp: "Этот JSON не экспортирован из Bookmarks",
+          unsavedWarning: "Есть несохранённые в JSON изменения! Экспортируйте данные перед очисткой браузера.",
+          allSavedWarning: "Все изменения экспортированы в JSON.",
+          emptyFolder: "В этой папке пока нет закладок. Нажмите иконку закладки с плюсом, чтобы добавить.",
+          emptySearch: "По вашему запросу ничего не найдено.",
+          searchResultsTitle: "Результаты поиска",
+          bookmarkCount: (n) => {
+            const c = ruPlural.select(n);
+            return `${n} ${c === "one" ? "закладка" : c === "few" ? "закладки" : "закладок"}`;
+          },
+          pageOf: (p, total) => `Стр. ${p} / ${total}`,
+          moreTags: (list) => `Скрытые теги: ${list}`,
+          folderCreated: "Папка создана",
+          folderUpdated: "Папка обновлена",
+          folderDeleted: "Папка удалена",
+          bookmarkSaved: "Закладка сохранена",
+          bookmarkDeleted: "Закладка удалена",
+          bookmarkMoved: (name) => `Перенесено в «${name}»`,
+          undoDone: "Действие отменено",
+          redoDone: "Действие повторено",
+          nothingToUndo: "Нет действий для отмены",
+          nothingToRedo: "Нет действий для повтора",
+          exportedOk: "Резервная копия JSON сохранена",
+          clearedOk: "localStorage сброшен до состояния по умолчанию",
+          invalidJson: "Некорректный JSON-файл Bookmarks",
+          needTitleUrl: "Укажите название закладки и URL",
+          invalidUrl: "Недопустимый URL (разрешены http, https, ftp, mailto)",
+          needFolderName: "Введите название папки",
+          cannotDeleteLast: "Должна оставаться хотя бы одна папка",
+          storageError: "Не удалось записать в localStorage (нет места или хранилище недоступно). Сделайте экспорт в JSON!",
+          corruptNotice: "Сохранённые данные были повреждены. Исходная копия сохранена в localStorage (ключ bookmarks_corrupt_backup_*).",
+          skippedInvalid: (n) => `Пропущено закладок с недопустимым URL: ${n}`,
+          syncedFromOtherTab: "Данные обновлены из другой вкладки",
+          openingWebSearch: "Закладки не найдены — ищу в интернете",
+          confirmClearTitle: "Сбросить всё?",
+          confirmClearText: "Все папки, закладки и настройки будут удалены из этого браузера. Если данные нужны, сначала сделайте экспорт в JSON.",
+          confirmClearOk: "Сбросить",
+          confirmDeleteFolderTitle: "Удалить папку?",
+          confirmDeleteFolderText: (name, n) => `Папка «${name}» и все её закладки (${n}) будут удалены. Действие можно отменить через Ctrl+Z.`,
+          welcomeTitle: "Добро пожаловать в Bookmarks",
+          licenceTitle: "Лицензия (@licence)",
+          licenceLinkText: "@licence",
+          menuTheme: "Тема",
+          menuFont: "Шрифт",
+          menuLang: "Язык",
+          tipToggleRail: "Свернуть / развернуть панель папок",
+          tipClearSearch: "Очистить поиск",
+          tipUndo: "Отменить (Ctrl+Z)",
+          tipGrid: "Размер сетки",
+          tipView: "Сетка / список",
+          tipTheme: "Светлая / тёмная тема",
+          tipFont: "Обычный / моноширинный шрифт",
+          tipLang: "Сменить язык",
+          tipMore: "Ещё настройки",
+          tipIo: "Экспорт / импорт JSON",
+          tipAdd: "Добавить закладку"
+        }
+      };
+
+      /* =====================================================================
+         UTILITIES: ids, escape, URL sanitising, tags
+         ===================================================================== */
+      function uid(prefix) {
+        try {
+          if (window.crypto && crypto.randomUUID) return prefix + "_" + crypto.randomUUID().slice(0, 12);
+        } catch (_e) {}
+        return prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      }
+
+      function escapeHtml(str) {
+        return String(str == null ? "" : str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function clip(str, max) {
+        return String(str == null ? "" : str).trim().slice(0, max);
+      }
+
+      /* Возвращает безопасный абсолютный URL либо null.
+         Поддерживает host:port (localhost:3000), локальные адреса получают http://. */
+      function sanitizeUrl(raw) {
+        let s = String(raw == null ? "" : raw).replace(/[\u0000-\u001f\u007f]/g, "").trim();
+        if (!s) return null;
+        let candidate;
+        const m = /^([a-zA-Z][a-zA-Z0-9+.-]*):(\/\/)?/.exec(s);
+        if (m && (m[2] || /^(mailto|tel|javascript|data|vbscript|file|blob|about)$/i.test(m[1]))) {
+          candidate = s;
+        } else {
+          const hostPart = s.split(/[\/?#]/)[0].replace(/:\d+$/, "").toLowerCase();
+          const isLocal =
+            hostPart === "localhost" ||
+            /^\d{1,3}(\.\d{1,3}){3}$/.test(hostPart) ||
+            /^\[[0-9a-f:]+\]$/.test(hostPart) ||
+            /\.(local|lan|home|internal|localdomain)$/.test(hostPart) ||
+            (hostPart && hostPart.indexOf(".") === -1);
+          candidate = (isLocal ? "http://" : "https://") + s;
+        }
+        try {
+          const u = new URL(candidate);
+          if (ALLOWED_PROTOCOLS.indexOf(u.protocol) === -1) return null;
+          if ((u.protocol === "http:" || u.protocol === "https:" || u.protocol === "ftp:") && !u.hostname) return null;
+          return candidate;
+        } catch (_e) {
+          return null;
+        }
+      }
+
+      function safeHref(url) {
+        return sanitizeUrl(url) || "#";
+      }
+
+      function sanitizeIconUrl(raw) {
+        const s = String(raw == null ? "" : raw).trim();
+        if (!s || s.toLowerCase() === "<favicon>") return "<favicon>";
+        if (/^data:image\/(png|jpeg|gif|webp|svg\+xml|x-icon|vnd\.microsoft\.icon);/i.test(s)) return s;
+        const u = sanitizeUrl(s);
+        return u && /^https?:/i.test(u) ? u : "<favicon>";
+      }
+
+      function hostOf(url) {
+        try {
+          return new URL(url).hostname.replace(/^www\./, "");
+        } catch (_e) {
+          return "";
+        }
+      }
+
+      function getFaviconFromUrl(siteUrl) {
+        try {
+          const u = new URL(siteUrl);
+          if (u.protocol !== "http:" && u.protocol !== "https:") return "";
+          return `${u.origin}/favicon.ico`;
+        } catch (_e) {
+          return "";
+        }
+      }
+
+      function resolveBookmarkIcon(bookmark) {
+        const custom = String(bookmark.iconUrl || "").trim();
+        if (custom && custom.toLowerCase() !== "<favicon>") return custom;
+        return getFaviconFromUrl(bookmark.url);
+      }
+
+      /* Теги: нижний регистр, без дублей и пустых, максимум 20 */
+      function parseTags(rawTags) {
+        const parts = Array.isArray(rawTags)
+          ? rawTags.map((x) => String(x))
+          : String(rawTags || "").split(/[\s,;]+/);
+        const out = [];
+        const seen = new Set();
+        parts.forEach((p) => {
+          const body = p.trim().replace(/^#+/, "").toLocaleLowerCase().slice(0, 32);
+          if (!body) return;
+          const tag = "#" + body;
+          if (seen.has(tag)) return;
+          seen.add(tag);
+          out.push(tag);
+        });
+        return out.slice(0, 20);
+      }
+
+      function formatTagsBrackets(tags) {
+        return `[${parseTags(tags).map((x) => x.replace(/^#+/, "")).join("; ")}]`;
+      }
+
+      /* =====================================================================
+         STORAGE LAYER (с резервом в памяти и обработкой ошибок)
+         ===================================================================== */
+      const mem = {};
+      const store = {
+        get(k) {
+          if (Object.prototype.hasOwnProperty.call(mem, k)) return mem[k];
+          try { return localStorage.getItem(k); } catch (_e) { return null; }
+        },
+        set(k, v) {
+          try {
+            localStorage.setItem(k, v);
+            delete mem[k];
+            return true;
+          } catch (_e) {
+            mem[k] = v;
+            return false;
+          }
+        },
+        remove(k) {
+          try { localStorage.removeItem(k); } catch (_e) {}
+          delete mem[k];
+        }
+      };
+
+      let corruptDetected = false;
+      function backupCorrupt(key, raw) {
+        corruptDetected = true;
+        store.set("bookmarks_corrupt_backup_" + Date.now() + "_" + key, raw);
+      }
+
+      function systemLang() {
+        const l = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
+        return /^ru/i.test(l) ? "ru" : "en";
+      }
+      function systemTheme() {
+        try { return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"; } catch (_e) { return "dark"; }
+      }
+
+      function defaultPrefs() {
+        return {
+          sidebarExpanded: false, folderSortLocked: false, gridCols: 3, gridRows: 3,
+          viewMode: "grid", theme: systemTheme(), font: "sans", lang: systemLang(),
+          welcomeShown: false, lastFolderId: null
+        };
+      }
+
+      function sanitizePrefs(p) {
+        const d = defaultPrefs();
+        p = p && typeof p === "object" ? p : {};
+        const dim = (v, def) => {
+          const n = Math.round(Number(v));
+          return Number.isFinite(n) ? Math.min(8, Math.max(1, n)) : def;
+        };
+        return {
+          sidebarExpanded: typeof p.sidebarExpanded === "boolean" ? p.sidebarExpanded : d.sidebarExpanded,
+          folderSortLocked: typeof p.folderSortLocked === "boolean" ? p.folderSortLocked : d.folderSortLocked,
+          gridCols: dim(p.gridCols, d.gridCols),
+          gridRows: dim(p.gridRows, d.gridRows),
+          viewMode: p.viewMode === "list" ? "list" : "grid",
+          theme: p.theme === "light" || p.theme === "dark" ? p.theme : d.theme,
+          font: p.font === "mono" ? "mono" : "sans",
+          lang: p.lang === "en" || p.lang === "ru" ? p.lang : d.lang,
+          welcomeShown: Boolean(p.welcomeShown),
+          lastFolderId: typeof p.lastFolderId === "string" ? p.lastFolderId : null
+        };
+      }
+
+      function sanitizeFolders(input) {
+        const usedF = new Set();
+        const usedB = new Set();
+        let skipped = 0;
+        const folders = [];
+        (Array.isArray(input) ? input : []).forEach((f, idx) => {
+          if (!f || typeof f !== "object") return;
+          let id = String(f.id || "");
+          if (!id || usedF.has(id)) id = uid("f");
+          usedF.add(id);
+          const bookmarks = [];
+          (Array.isArray(f.bookmarks) ? f.bookmarks : []).forEach((b) => {
+            if (!b || typeof b !== "object") return;
+            const url = sanitizeUrl(b.url);
+            if (!url) { skipped++; return; }
+            let bid = String(b.id || "");
+            if (!bid || usedB.has(bid)) bid = uid("b");
+            usedB.add(bid);
+            bookmarks.push({
+              id: bid,
+              title: clip(b.title, 120) || hostOf(url) || url,
+              url,
+              iconUrl: sanitizeIconUrl(b.iconUrl),
+              tags: parseTags(b.tags)
+            });
+          });
+          folders.push({
+            id,
+            name: clip(f.name, 60) || "Folder " + (idx + 1),
+            iconIndex: Number.isInteger(f.iconIndex) && f.iconIndex >= 0 && f.iconIndex < ICON_PATHS.length ? f.iconIndex : 1,
+            bookmarks
+          });
+        });
+        return { folders, skipped };
+      }
+
+      function defaultData() {
+        return {
+          folders: [{
+            id: "f_home", name: "Home", iconIndex: 0,
+            bookmarks: [{ id: "b_google", title: "Google", url: "https://google.com", iconUrl: "<favicon>", tags: ["#search", "#web"] }]
+          }],
+          dirty: false,
+          skipped: 0
+        };
+      }
+
+      function loadData() {
+        const raw = store.get(DATA_KEY);
+        if (raw) {
+          try {
+            const p = JSON.parse(raw);
+            const res = sanitizeFolders(p && p.folders);
+            if (res.folders.length) return { folders: res.folders, dirty: Boolean(p.dirty), skipped: res.skipped };
+          } catch (_e) {}
+          backupCorrupt(DATA_KEY, raw);
+          return defaultData();
+        }
+        const legacy = store.get(LEGACY_KEY); // миграция со старой версии, исходный ключ не трогаем
+        if (legacy) {
+          try {
+            const p = JSON.parse(legacy);
+            const res = sanitizeFolders(p && p.folders);
+            if (res.folders.length) return { folders: res.folders, dirty: Boolean(p.hasUnsavedExport), skipped: res.skipped };
+          } catch (_e) {}
+          backupCorrupt(LEGACY_KEY, legacy);
+        }
+        return defaultData();
+      }
+
+      function loadPrefs() {
+        const raw = store.get(PREFS_KEY);
+        if (raw) {
+          try { return sanitizePrefs(JSON.parse(raw)); } catch (_e) { backupCorrupt(PREFS_KEY, raw); }
+          return defaultPrefs();
+        }
+        const legacy = store.get(LEGACY_KEY);
+        if (legacy) {
+          try {
+            const p = JSON.parse(legacy);
+            return sanitizePrefs(Object.assign({}, p, { lastFolderId: p.activeFolderId }));
+          } catch (_e) {}
+        }
+        return defaultPrefs();
+      }
+
+      /* =====================================================================
+         STATE
+         ===================================================================== */
+      let state;
+      let undoStack = [];
+      let redoStack = [];
+      let pendingImportData = null;
+      let editingBookmarkCtx = null;
+      let editingFolderId = null;
+      let selectedFolderIcon = 1;
+      let dragCtx = null;
+      let ddItems = [];
+      let ddIndex = -1;
+      let confirmResolve = null;
+      let storageWarnedAt = 0;
+
+      function buildState(data, prefs) {
+        const s = Object.assign({}, prefs, { folders: data.folders, hasUnsavedExport: data.dirty, carouselPage: 0 });
+        s.activeFolderId = data.folders.some((f) => f.id === prefs.lastFolderId) ? prefs.lastFolderId : data.folders[0].id;
+        return s;
+      }
+
+      const initialData = loadData();
+      const initialPrefs = loadPrefs();
+      state = buildState(initialData, initialPrefs);
+
+      function t(key, ...args) {
+        const dict = I18N[state.lang] || I18N.en;
+        const val = dict[key];
+        return typeof val === "function" ? val(...args) : (val || key);
+      }
+
+      function showToast(msg, opts = {}) {
+        const el = $("toastBar");
+        const act = $("toastAction");
+        $("toastText").textContent = msg;
+        if (opts.actionLabel && opts.onAction) {
+          act.textContent = opts.actionLabel;
+          act.hidden = false;
+          act.onclick = () => {
+            el.classList.remove("show", "has-action");
+            opts.onAction();
+          };
+          el.classList.add("has-action");
+        } else {
+          act.hidden = true;
+          act.onclick = null;
+          el.classList.remove("has-action");
+        }
+        el.classList.add("show");
+        clearTimeout(showToast._timer);
+        showToast._timer = setTimeout(() => el.classList.remove("show", "has-action"), opts.duration || (opts.onAction ? 5000 : 2600));
+      }
+
+      function writeKey(key, obj) {
+        const ok = store.set(key, JSON.stringify(obj));
+        if (!ok && Date.now() - storageWarnedAt > 8000) {
+          storageWarnedAt = Date.now();
+          showToast(t("storageError"), { duration: 7000 });
+        }
+        return ok;
+      }
+
+      function saveData(markDirty = true) {
+        if (markDirty) state.hasUnsavedExport = true;
+        writeKey(DATA_KEY, { version: DATA_VERSION, folders: state.folders, dirty: state.hasUnsavedExport });
+        syncDirtyIndicator();
+        syncUndoButton();
+      }
+
+      function savePrefs() {
+        const o = {};
+        PREF_KEYS.forEach((k) => { o[k] = state[k]; });
+        o.lastFolderId = state.activeFolderId;
+        writeKey(PREFS_KEY, o);
+      }
+
+      /* Undo / Redo: снимки папок */
+      function snapshot() {
+        return JSON.stringify({ f: state.folders, a: state.activeFolderId });
+      }
+      function restoreSnapshot(str) {
+        const s = JSON.parse(str);
+        state.folders = s.f;
+        state.activeFolderId = state.folders.some((f) => f.id === s.a) ? s.a : state.folders[0].id;
+        state.carouselPage = 0;
+      }
+      function pushUndo() {
+        undoStack.push(snapshot());
+        if (undoStack.length > MAX_UNDO) undoStack.shift();
+        redoStack.length = 0;
+      }
+      function mutate(fn) {
+        pushUndo();
+        fn();
+        saveData(true);
+        renderAll();
+      }
+      function undo() {
+        if (!undoStack.length) { showToast(t("nothingToUndo")); return; }
+        redoStack.push(snapshot());
+        restoreSnapshot(undoStack.pop());
+        saveData(true);
+        savePrefs();
+        renderAll();
+        showToast(t("undoDone"));
+      }
+      function redo() {
+        if (!redoStack.length) { showToast(t("nothingToRedo")); return; }
+        undoStack.push(snapshot());
+        restoreSnapshot(redoStack.pop());
+        saveData(true);
+        savePrefs();
+        renderAll();
+        showToast(t("redoDone"));
+      }
+
+      function syncUndoButton() {
+        const btn = $("cfgUndoBtn");
+        const has = undoStack.length > 0;
+        btn.classList.toggle("undo-dimmed", !has);
+        btn.classList.toggle("undo-active", has);
+        btn.setAttribute("aria-disabled", String(!has));
+      }
+
+      function syncDirtyIndicator() {
+        $("cfgIoBtn").classList.toggle("unsaved-dirty", Boolean(state.hasUnsavedExport));
+      }
+
+      /* =====================================================================
+         MODALS (focus management)
+         ===================================================================== */
+      const MODAL_IDS = ["bookmarkModalBackdrop", "ioModalBackdrop", "infoModalBackdrop", "confirmModalBackdrop"];
+
+      function openModal(id, focusId) {
+        const b = $(id);
+        if (!b.classList.contains("open")) b._ret = document.activeElement;
+        b.classList.add("open");
+        const f = focusId ? $(focusId) : b.querySelector("button, input, select");
+        setTimeout(() => { if (f) f.focus(); }, 30);
+      }
+      function hideModal(id) {
+        const b = $(id);
+        if (!b.classList.contains("open")) return false;
+        b.classList.remove("open");
+        const r = b._ret;
+        b._ret = null;
+        if (r && document.contains(r) && typeof r.focus === "function") r.focus();
+        return true;
+      }
+      function anyModalOpen() {
+        return MODAL_IDS.some((id) => $(id).classList.contains("open"));
+      }
+
+      function askConfirm({ title, text, okLabel, danger = true }) {
+        return new Promise((resolve) => {
+          if (confirmResolve) confirmResolve(false);
+          confirmResolve = resolve;
+          $("confirmTitle").textContent = title;
+          $("confirmText").textContent = text;
+          const ok = $("confirmOkBtn");
+          ok.textContent = okLabel || t("confirm");
+          ok.className = danger ? "btn-danger" : "btn-filled";
+          openModal("confirmModalBackdrop", "confirmCancelBtn");
+        });
+      }
+      function settleConfirm(value) {
+        if (!confirmResolve) return;
+        const r = confirmResolve;
+        confirmResolve = null;
+        hideModal("confirmModalBackdrop");
+        r(value);
+      }
+
+      /* =====================================================================
+         GRID MEASURING
+         Карточка имеет ширину CARD_DEFAULT_W (280px) и уменьшается только если
+         не влезает в ширину доступного пространства окна/колонки.
+         ===================================================================== */
+      function getMinCardWidthForFolder(bookmarks) {
+        return CARD_DEFAULT_W;
+      }
+
+      function measureGrid(bookmarks) {
+        const stage = $("bookmarksStage");
+        const w = stage ? stage.clientWidth : window.innerWidth;
+        const h = (stage ? stage.clientHeight : window.innerHeight) - GRID_TOP_PAD;
+        const isMobile = window.innerWidth <= 720;
+        const minCols = isMobile ? 1 : 3;
+        const fittingCols = Math.max(1, Math.floor((w + GRID_GAP) / (CARD_DEFAULT_W + GRID_GAP)));
+        const actualCols = Math.min(8, Math.max(minCols, fittingCols));
+        const availableColW = Math.max(80, Math.floor((w - GRID_GAP * (actualCols - 1)) / actualCols));
+        const minCardW = Math.min(CARD_DEFAULT_W, availableColW);
+        return {
+          minCols,
+          minRows: 3,
+          minCardW,
+          maxFitCols: actualCols,
+          maxFitRows: Math.max(1, Math.floor((h + GRID_GAP) / (84 + GRID_GAP)))
+        };
+      }
+
+      function getGridLimits(bookmarks) {
+        const m = measureGrid(bookmarks);
+        return {
+          minC: Math.min(m.minCols, m.maxFitCols),
+          minR: Math.min(m.minRows, m.maxFitRows),
+          maxC: Math.min(8, m.maxFitCols),
+          maxR: Math.min(8, m.maxFitRows),
+          minCardW: m.minCardW
+        };
+      }
+
+      function getEffectiveGridDimensions(bookmarks = []) {
+        const l = getGridLimits(bookmarks);
+        const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+        return {
+          cols: clamp(Number(state.gridCols) || l.minC, l.minC, l.maxC),
+          rows: clamp(Number(state.gridRows) || l.minR, l.minR, l.maxR),
+          minCardW: l.minCardW
+        };
+      }
+
+      /* =====================================================================
+         FAVICONS (запасная иконка-аватар)
+         ===================================================================== */
+      function hashHue(s) {
+        let h = 0;
+        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        return h % 360;
+      }
+
+      function createFavicon(bm, size) {
+        const wrap = document.createElement("span");
+        wrap.className = "fav fav-" + size;
+        const host = hostOf(bm.url);
+
+        const showFallback = () => {
+          wrap.textContent = "";
+          const d = document.createElement("span");
+          d.className = "fav-fallback";
+          const m = String(bm.title || host || "?").trim().match(/[\p{L}\p{N}]/u);
+          d.textContent = (m ? m[0] : "?").toUpperCase();
+          d.style.backgroundColor = `hsl(${hashHue(host || bm.title || "")} 52% 40%)`;
+          wrap.appendChild(d);
+        };
+
+        const primary = resolveBookmarkIcon(bm);
+        const fallback = getFaviconFromUrl(bm.url);
+        if (!primary && !fallback) {
+          showFallback();
+          return wrap;
+        }
+
+        const img = new Image();
+        let triedFallback = false;
+        img.alt = "";
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.referrerPolicy = "no-referrer";
+        img.onerror = () => {
+          if (!triedFallback && fallback && img.src !== fallback) {
+            triedFallback = true;
+            img.src = fallback;
+          } else {
+            showFallback();
+          }
+        };
+        img.onload = () => {
+          const n = img.naturalWidth;
+          if (n && n <= 24) {
+            const k = Math.max(1, Math.floor(FAV_BOX[size] / n));
+            img.style.width = img.style.height = n * k + "px";
+            img.style.imageRendering = k > 1 ? "pixelated" : "auto";
+          }
+        };
+        img.src = primary || fallback;
+        wrap.appendChild(img);
+        return wrap;
+      }
+
+      /* =====================================================================
+         TOUCH GESTURES: long-press drag-reorder + swipe
+         ===================================================================== */
+      function bindTouchGestures(root, opts) {
+        let s = null;
+        const canDrag = opts.canDrag || (() => true);
+
+        root.addEventListener("touchstart", (e) => {
+          if (e.touches.length !== 1) { s = null; return; }
+          const tch = e.touches[0];
+          const item = e.target.closest(opts.itemSel);
+          s = { x: tch.clientX, y: tch.clientY, item, drag: false, timer: null, over: null };
+          if (item && canDrag() && !e.target.closest(".bookmark-actions, .list-actions, .folder-item-actions, .tag-chip")) {
+            s.timer = setTimeout(() => {
+              if (!s) return;
+              s.drag = true;
+              item.classList.add("dragging");
+              if (navigator.vibrate) { try { navigator.vibrate(12); } catch (_e) {} }
+            }, 400);
+          }
+        }, { passive: true });
+
+        root.addEventListener("touchmove", (e) => {
+          if (!s) return;
+          const tch = e.touches[0];
+          if (!s.drag) {
+            if (Math.hypot(tch.clientX - s.x, tch.clientY - s.y) > 10) clearTimeout(s.timer);
+            return;
+          }
+          e.preventDefault();
+          const el = document.elementFromPoint(tch.clientX, tch.clientY);
+          const tgt = el && el.closest(opts.itemSel);
+          if (s.over && s.over !== tgt) s.over.classList.remove("drag-over");
+          s.over = tgt && tgt !== s.item ? tgt : null;
+          if (s.over) s.over.classList.add("drag-over");
+        }, { passive: false });
+
+        root.addEventListener("touchend", (e) => {
+          if (!s) return;
+          clearTimeout(s.timer);
+          const st = s;
+          s = null;
+          if (st.drag) {
+            e.preventDefault();
+            st.item.classList.remove("dragging");
+            if (st.over) {
+              st.over.classList.remove("drag-over");
+              opts.onReorder(st.item.dataset.id, st.over.dataset.id);
+            }
+            return;
+          }
+          if (opts.onSwipe && e.changedTouches.length) {
+            const tch = e.changedTouches[0];
+            const dx = tch.clientX - st.x;
+            const dy = tch.clientY - st.y;
+            if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+              e.preventDefault();
+              opts.onSwipe(dx < 0 ? 1 : -1);
+            }
+          }
+        }, { passive: false });
+
+        root.addEventListener("touchcancel", () => {
+          if (!s) return;
+          clearTimeout(s.timer);
+          if (s.item) s.item.classList.remove("dragging");
+          if (s.over) s.over.classList.remove("drag-over");
+          s = null;
+        });
+
+        root.addEventListener("contextmenu", (e) => {
+          if (s && s.drag) e.preventDefault();
+        });
+      }
+
+      /* =====================================================================
+         FOLDERS SIDEBAR
+         ===================================================================== */
+      function syncLockSortButton() {
+        const btn = $("lockSortBtn");
+        const iconSlot = $("lockSortIconSlot");
+        btn.classList.toggle("locked", Boolean(state.folderSortLocked));
+        const label = btn.querySelector(".lock-sort-label");
+        if (state.folderSortLocked) {
+          iconSlot.innerHTML = renderSvgIcon(21);
+          label.textContent = t("unlockSort");
+          btn.title = t("unlockSort");
+        } else {
+          iconSlot.innerHTML = renderSvgIcon(22);
+          label.textContent = t("lockSort");
+          btn.title = t("lockSort");
+        }
+        btn.setAttribute("aria-pressed", String(Boolean(state.folderSortLocked)));
+      }
+
+      function reorderFolders(srcId, dstId) {
+        if (state.folderSortLocked || !srcId || !dstId || srcId === dstId) return;
+        const fromIdx = state.folders.findIndex((f) => f.id === srcId);
+        const toIdx = state.folders.findIndex((f) => f.id === dstId);
+        if (fromIdx === -1 || toIdx === -1) return;
+        mutate(() => {
+          const [moved] = state.folders.splice(fromIdx, 1);
+          state.folders.splice(toIdx, 0, moved);
+        });
+      }
+
+      function moveBookmarkToFolder(fromFolderId, bmId, toFolderId) {
+        if (fromFolderId === toFolderId) return;
+        const from = state.folders.find((f) => f.id === fromFolderId);
+        const to = state.folders.find((f) => f.id === toFolderId);
+        if (!from || !to) return;
+        const idx = from.bookmarks.findIndex((b) => b.id === bmId);
+        if (idx === -1) return;
+        mutate(() => {
+          const [bm] = from.bookmarks.splice(idx, 1);
+          to.bookmarks.push(bm);
+        });
+        showToast(t("bookmarkMoved", to.name), { actionLabel: t("undo"), onAction: undo });
+      }
+
+      function selectFolder(folderId) {
+        state.activeFolderId = folderId;
+        state.carouselPage = 0;
+        const searchInput = $("globalSearchInput");
+        if (searchInput.value.trim()) {
+          searchInput.value = "";
+          $("clearSearchBtn").classList.remove("visible");
+          ddIndex = -1;
+        }
+        if (window.innerWidth <= 720 && state.sidebarExpanded) state.sidebarExpanded = false;
+        savePrefs();
+        renderAll();
+      }
+
+      function renderFoldersSidebar() {
+        const sidebar = $("folderSidebar");
+        sidebar.classList.toggle("expanded", Boolean(state.sidebarExpanded));
+        syncLockSortButton();
+
+        const listEl = $("folderList");
+        listEl.innerHTML = "";
+        const html5Drag = !COARSE.matches;
+
+        state.folders.forEach((folder) => {
+          const isActive = folder.id === state.activeFolderId;
+          const row = document.createElement("div");
+          row.className = "folder-row" + (isActive ? " active" : "");
+          row.dataset.id = folder.id;
+          row.draggable = html5Drag && !state.folderSortLocked;
+
+          row.innerHTML = `
+            <button type="button" class="folder-item" title="${escapeHtml(folder.name)}" ${isActive ? 'aria-current="true"' : ""}>
+              ${renderSvgIcon(folder.iconIndex, "icon-svg")}
+              <span class="folder-item-label">${escapeHtml(folder.name)}</span>
+              <span class="folder-item-count">${folder.bookmarks.length}</span>
+            </button>
+            <span class="folder-item-actions">
+              <button type="button" class="folder-action-mini edit" title="${escapeHtml(t("editFolderTitle"))}" aria-label="${escapeHtml(t("editFolderTitle"))}">
+                ${PENCIL_SVG}
+              </button>
+              <button type="button" class="folder-action-mini del" title="${escapeHtml(t("deleteFolderTitle"))}" aria-label="${escapeHtml(t("deleteFolderTitle"))}">
+                <svg class="icon-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </span>
+          `;
+
+          row.querySelector(".folder-item").addEventListener("click", () => selectFolder(folder.id));
+          row.querySelector(".edit").addEventListener("click", (e) => {
+            e.stopPropagation();
+            openFolderPopover(folder, e.currentTarget);
+          });
+          row.querySelector(".del").addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteFolder(folder.id);
+          });
+
+          row.addEventListener("dragstart", (e) => {
+            if (state.folderSortLocked) { e.preventDefault(); return; }
+            dragCtx = { kind: "folder", id: folder.id };
+            row.classList.add("dragging");
+            if (e.dataTransfer) {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", folder.id);
+            }
+          });
+          row.addEventListener("dragend", () => {
+            dragCtx = null;
+            row.classList.remove("dragging");
+            listEl.querySelectorAll(".folder-row").forEach((el) => el.classList.remove("drag-over"));
+          });
+          row.addEventListener("dragover", (e) => {
+            if (!dragCtx) return;
+            if (dragCtx.kind === "folder") {
+              if (state.folderSortLocked || dragCtx.id === folder.id) return;
+            } else if (dragCtx.folderId === folder.id) {
+              return;
+            }
+            e.preventDefault();
+            row.classList.add("drag-over");
+          });
+          row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
+          row.addEventListener("drop", (e) => {
+            e.preventDefault();
+            row.classList.remove("drag-over");
+            const ctx = dragCtx;
+            dragCtx = null;
+            if (!ctx) return;
+            if (ctx.kind === "folder") reorderFolders(ctx.id, folder.id);
+            else moveBookmarkToFolder(ctx.folderId, ctx.id, folder.id);
+          });
+
+          listEl.appendChild(row);
+        });
+      }
+
+      async function deleteFolder(folderId) {
+        if (state.folders.length <= 1) {
+          showToast(t("cannotDeleteLast"));
+          return;
+        }
+        const folder = state.folders.find((f) => f.id === folderId);
+        if (!folder) return;
+        const ok = await askConfirm({
+          title: t("confirmDeleteFolderTitle"),
+          text: t("confirmDeleteFolderText", folder.name, folder.bookmarks.length),
+          okLabel: t("delete")
+        });
+        if (!ok) return;
+        mutate(() => {
+          state.folders = state.folders.filter((f) => f.id !== folderId);
+          if (state.activeFolderId === folderId) state.activeFolderId = state.folders[0].id;
+          state.carouselPage = 0;
+        });
+        savePrefs();
+        showToast(t("folderDeleted"), { actionLabel: t("undo"), onAction: undo });
+      }
+
+      /* =====================================================================
+         SEARCH: tokenizer, filters, suggestions, @-commands
+         Семантика: несколько #тегов и слов — «И»; несколько /папок или .доменов — «ИЛИ».
+         Слова ищутся в названии и URL. .домен сравнивается по границам меток
+         (.ru НЕ находит rutracker.org; .google находит mail.google.com).
+         Для папок/фраз с пробелами используйте кавычки: /"My Folder", "two words".
+         ===================================================================== */
+      function tokenizeQuery(q) {
+        const tokens = [];
+        const re = /([\/#.]?)"([^"]*)"?|(\S+)/g;
+        let m;
+        while ((m = re.exec(q)) !== null) {
+          let prefix, text;
+          if (m[3] !== undefined) {
+            const w = m[3];
+            if (/^[\/#.]/.test(w)) { prefix = w[0]; text = w.slice(1); } else { prefix = ""; text = w; }
+          } else {
+            prefix = m[1];
+            text = m[2];
+          }
+          text = text.trim();
+          if (!text) continue;
+          tokens.push({ prefix, text: text.toLowerCase() });
+        }
+        return tokens;
+      }
+
+      function runGlobalSearch(rawQuery) {
+        const q = rawQuery.trim();
+        if (!q || q.startsWith("@")) return null;
+
+        const terms = [], domains = [], tags = [], folders = [];
+        tokenizeQuery(q).forEach((tk) => {
+          if (tk.prefix === ".") domains.push(tk.text);
+          else if (tk.prefix === "#") tags.push(tk.text);
+          else if (tk.prefix === "/") folders.push(tk.text);
+          else terms.push(tk.text);
+        });
+
+        const matches = [];
+        state.folders.forEach((folder) => {
+          const fl = folder.name.toLowerCase();
+          if (folders.length && !folders.some((f) => fl.includes(f))) return;
+
+          folder.bookmarks.forEach((bm) => {
+            const titleL = bm.title.toLowerCase();
+            const urlL = bm.url.toLowerCase();
+
+            if (domains.length) {
+              let host = "";
+              try { host = new URL(bm.url).hostname.toLowerCase(); } catch (_e) {}
+              const padded = "." + host + ".";
+              if (!domains.some((d) => padded.includes("." + d + "."))) return;
+            }
+            if (tags.length) {
+              const bmTags = parseTags(bm.tags);
+              if (!tags.every((rt) => bmTags.some((tg) => tg.includes(rt)))) return;
+            }
+            if (terms.length && !terms.every((term) => titleL.includes(term) || urlL.includes(term))) return;
+
+            matches.push({ folder, bookmark: bm });
+          });
+        });
+
+        return {
+          matches,
+          terms,
+          plainOnly: terms.length > 0 && !domains.length && !tags.length && !folders.length
+        };
+      }
+
+      function appendHighlighted(el, text, terms) {
+        if (!terms.length) { el.textContent = text; return; }
+        const lower = text.toLowerCase();
+        let ranges = [];
+        terms.forEach((term) => {
+          let i = lower.indexOf(term);
+          while (i !== -1) {
+            ranges.push([i, i + term.length]);
+            i = lower.indexOf(term, i + term.length);
+          }
+        });
+        if (!ranges.length) { el.textContent = text; return; }
+        ranges.sort((a, b) => a[0] - b[0]);
+        const merged = [ranges[0]];
+        for (let i = 1; i < ranges.length; i++) {
+          const last = merged[merged.length - 1];
+          if (ranges[i][0] <= last[1]) last[1] = Math.max(last[1], ranges[i][1]);
+          else merged.push(ranges[i]);
+        }
+        let pos = 0;
+        merged.forEach(([a, b]) => {
+          if (a > pos) el.appendChild(document.createTextNode(text.slice(pos, a)));
+          const mark = document.createElement("mark");
+          mark.textContent = text.slice(a, b);
+          el.appendChild(mark);
+          pos = b;
+        });
+        if (pos < text.length) el.appendChild(document.createTextNode(text.slice(pos)));
+      }
+
+      function getMatchingAtCommands(rawVal) {
+        const trimmedStart = rawVal.replace(/^\s+/, "");
+        if (!trimmedStart.startsWith("@")) return [];
+        const firstToken = trimmedStart.split(/\s+/)[0].toLowerCase();
+        return AT_COMMANDS.filter((item) => item.cmd.startsWith(firstToken));
+      }
+
+      function getLastToken(v) {
+        if (!v || /\s$/.test(v)) return null;
+        const quotes = (v.match(/"/g) || []).length;
+        if (quotes % 2 === 1) {
+          const qi = v.lastIndexOf('"');
+          let start = qi;
+          if (qi > 0 && /[\/#.]/.test(v[qi - 1])) start = qi - 1;
+          return { start, text: v.slice(start) };
+        }
+        const m = /(\S+)$/.exec(v);
+        return m ? { start: m.index, text: m[1] } : null;
+      }
+
+      function getFilterSuggestions(value) {
+        const tok = getLastToken(value);
+        if (!tok || !/^[#\/.]/.test(tok.text)) return [];
+        const kind = tok.text[0];
+        const prefix = tok.text.slice(1).replace(/^"/, "").replace(/"$/, "").toLowerCase();
+        const counts = new Map();
+        const bump = (k) => counts.set(k, (counts.get(k) || 0) + 1);
+
+        if (kind === "#") {
+          state.folders.forEach((f) => f.bookmarks.forEach((b) => parseTags(b.tags).forEach((tg) => bump(tg))));
+          return [...counts.entries()]
+            .filter(([tg]) => tg.slice(1).startsWith(prefix) && tg.slice(1) !== prefix)
+            .sort((a, b) => b[1] - a[1]).slice(0, 8)
+            .map(([tg, n]) => ({ kind: "sugg", text: tg, insert: tg, desc: String(n) }));
+        }
+        if (kind === "/") {
+          return state.folders
+            .filter((f) => f.name.toLowerCase().startsWith(prefix) && f.name.toLowerCase() !== prefix)
+            .slice(0, 8)
+            .map((f) => ({
+              kind: "sugg", text: "/" + f.name,
+              insert: /\s/.test(f.name) ? `/"${f.name}"` : "/" + f.name,
+              desc: t("bookmarkCount", f.bookmarks.length)
+            }));
+        }
+        state.folders.forEach((f) => f.bookmarks.forEach((b) => {
+          const labels = hostOf(b.url).toLowerCase().split(".").filter(Boolean);
+          if (!labels.length) return;
+          const set = new Set();
+          labels.forEach((l) => set.add("." + l));
+          if (labels.length >= 2) set.add("." + labels.slice(-2).join("."));
+          set.forEach((d) => bump(d));
+        }));
+        return [...counts.entries()]
+          .filter(([d]) => d.slice(1).startsWith(prefix) && d.slice(1) !== prefix)
+          .sort((a, b) => b[1] - a[1]).slice(0, 8)
+          .map(([d, n]) => ({ kind: "sugg", text: d, insert: d, desc: String(n) }));
+      }
+
+      function renderDropdown() {
+        const input = $("globalSearchInput");
+        const drop = $("atCommandsDropdown");
+        const cmds = getMatchingAtCommands(input.value);
+        ddItems = cmds.length
+          ? cmds.map((c) => ({ kind: "cmd", text: c.cmd, desc: state.lang === "ru" ? c.descRu : c.descEn }))
+          : getFilterSuggestions(input.value);
+        if (ddIndex >= ddItems.length) ddIndex = -1;
+
+        if (!ddItems.length) {
+          drop.classList.remove("open");
+          drop.innerHTML = "";
+          return;
+        }
+        drop.innerHTML = "";
+        ddItems.forEach((item, i) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.tabIndex = -1;
+          btn.setAttribute("role", "option");
+          btn.className = "at-command-item" + (i === ddIndex ? " selected" : "");
+          btn.setAttribute("aria-selected", String(i === ddIndex));
+          const name = document.createElement("span");
+          name.className = "at-cmd-name";
+          name.textContent = item.text;
+          const desc = document.createElement("span");
+          desc.className = "at-cmd-desc";
+          desc.textContent = item.desc;
+          btn.append(name, desc);
+          btn.addEventListener("mousedown", (e) => e.preventDefault()); // не терять фокус поля
+          btn.addEventListener("click", () => applyDropdownItem(item, false));
+          drop.appendChild(btn);
+        });
+        drop.classList.add("open");
+      }
+
+      function applyDropdownItem(item, fillOnly) {
+        const input = $("globalSearchInput");
+        if (item.kind === "cmd") {
+          input.value = item.text;
+          $("clearSearchBtn").classList.add("visible");
+          if (fillOnly) { ddIndex = -1; renderDropdown(); input.focus(); return; }
+          $("atCommandsDropdown").classList.remove("open");
+          executeSearchCommand(item.text);
+          return;
+        }
+        const tok = getLastToken(input.value);
+        if (!tok) return;
+        input.value = input.value.slice(0, tok.start) + item.insert + " ";
+        $("clearSearchBtn").classList.add("visible");
+        ddIndex = -1;
+        renderDropdown();
+        renderBookmarksStage();
+        input.focus();
+      }
+
+      function resetSearchInput() {
+        const input = $("globalSearchInput");
+        input.value = "";
+        $("clearSearchBtn").classList.remove("visible");
+        ddIndex = -1;
+        renderDropdown();
+        renderBookmarksStage();
+      }
+
+      function executeSearchCommand(rawQuery) {
+        const cmd = rawQuery.trim().toLowerCase();
+        switch (cmd) {
+          case "@export": resetSearchInput(); exportStateToJson(); return true;
+          case "@import": resetSearchInput(); openIoModal(); $("importFileInput").click(); return true;
+          case "@clear": resetSearchInput(); requestClear(); return true;
+          case "@undo": resetSearchInput(); undo(); return true;
+          case "@licence":
+          case "@license": resetSearchInput(); openInfoModal("licence"); return true;
+          case "@welcome": resetSearchInput(); openInfoModal("welcome"); return true;
+          default: return false;
+        }
+      }
+
+      async function requestClear() {
+        const ok = await askConfirm({
+          title: t("confirmClearTitle"),
+          text: t("confirmClearText"),
+          okLabel: t("confirmClearOk")
+        });
+        if (!ok) return;
+        store.remove(DATA_KEY);
+        store.remove(PREFS_KEY);
+        store.remove(LEGACY_KEY);
+        undoStack = [];
+        redoStack = [];
+        state = buildState(defaultData(), defaultPrefs());
+        saveData(false);
+        savePrefs();
+        showToast(t("clearedOk"));
+        renderAll();
+        openInfoModal("welcome");
+      }
+
+      function openFirstSearchResult() {
+        const query = $("globalSearchInput").value;
+        const res = runGlobalSearch(query);
+        if (!res) return;
+        if (res.matches.length) {
+          window.open(safeHref(res.matches[0].bookmark.url), "_blank", "noopener,noreferrer");
+        } else if (res.plainOnly) {
+          showToast(t("openingWebSearch"));
+          window.open(FALLBACK_SEARCH_URL + encodeURIComponent(query.trim()), "_blank", "noopener,noreferrer");
+        } else {
+          showToast(t("emptySearch"));
+        }
+      }
+
+      function applyTagFilterToSearch(tagStr) {
+        const input = $("globalSearchInput");
+        const cleanTag = tagStr.startsWith("#") ? tagStr : "#" + tagStr;
+        const current = input.value.trim();
+        if (!current) input.value = cleanTag;
+        else if (!current.split(/\s+/).includes(cleanTag)) input.value = current + " " + cleanTag;
+        $("clearSearchBtn").classList.toggle("visible", input.value.length > 0);
+        ddIndex = -1;
+        renderDropdown();
+        renderBookmarksStage();
+      }
+
+      /* =====================================================================
+         BOOKMARKS STAGE
+         ===================================================================== */
+      function renderCarouselFooter(totalPages, currentPage) {
+        const dotsEl = $("carouselIndicator");
+        dotsEl.innerHTML = "";
+        if (totalPages <= 1) return;
+        for (let p = 0; p < totalPages; p++) {
+          const dot = document.createElement("button");
+          dot.type = "button";
+          dot.className = "carousel-dot" + (p === currentPage ? " active" : "");
+          dot.setAttribute("aria-label", t("pageOf", p + 1, totalPages));
+          dot.addEventListener("click", () => {
+            state.carouselPage = p;
+            renderBookmarksStage();
+          });
+          dotsEl.appendChild(dot);
+        }
+      }
+
+      function reorderBookmarksInFolder(folderId, draggedId, targetId) {
+        if (!draggedId || !targetId || draggedId === targetId) return;
+        const folder = state.folders.find((f) => f.id === folderId);
+        if (!folder) return;
+        const fromIdx = folder.bookmarks.findIndex((b) => b.id === draggedId);
+        const toIdx = folder.bookmarks.findIndex((b) => b.id === targetId);
+        if (fromIdx === -1 || toIdx === -1) return;
+        mutate(() => {
+          const [moved] = folder.bookmarks.splice(fromIdx, 1);
+          folder.bookmarks.splice(toIdx, 0, moved);
+        });
+      }
+
+      function createTagChip(tg, idx, stopLink) {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = `tag-chip c${idx % 4}`;
+        chip.textContent = tg;
+        chip.addEventListener("click", (e) => {
+          if (stopLink) { e.preventDefault(); e.stopPropagation(); }
+          applyTagFilterToSearch(tg);
+        });
+        return chip;
+      }
+
+      /* Теги, не поместившиеся в два ряда, скрываются; вместо них — счётчик «+N» */
+      function fitTagChips(cloud) {
+        const chips = Array.from(cloud.querySelectorAll(".tag-chip:not(.tag-more)"));
+        if (!chips.length) return;
+        const more = document.createElement("span");
+        more.className = "tag-chip tag-more";
+        more.style.display = "none";
+        cloud.appendChild(more);
+        const over = () => cloud.scrollHeight > cloud.clientHeight + 1;
+        let hidden = 0;
+        while (over() && hidden < chips.length) {
+          chips[chips.length - 1 - hidden].style.display = "none";
+          hidden++;
+          more.textContent = "+" + hidden;
+          more.style.display = "";
+        }
+        if (hidden) {
+          const names = chips.slice(chips.length - hidden).map((c) => c.textContent).join(" ");
+          more.title = t("moreTags", names);
+        }
+      }
+
+      function buildBookmarkActionButtons(folderId, bookmark, variant) {
+        const wrap = document.createElement("div");
+        wrap.className = variant === "list" ? "list-actions" : "bookmark-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "mini-icon-btn";
+        editBtn.title = t("editBookmarkTitle");
+        editBtn.setAttribute("aria-label", t("editBookmarkTitle"));
+        editBtn.innerHTML = PENCIL_SVG;
+        editBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openBookmarkModal(folderId, bookmark);
+        });
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "mini-icon-btn del";
+        delBtn.title = t("deleteBookmarkTitle");
+        delBtn.setAttribute("aria-label", t("deleteBookmarkTitle"));
+        delBtn.innerHTML = '<svg class="icon-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+        delBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const f = state.folders.find((item) => item.id === folderId);
+          if (!f) return;
+          const idx = f.bookmarks.findIndex((b) => b.id === bookmark.id);
+          if (idx === -1) return;
+          mutate(() => { f.bookmarks.splice(idx, 1); });
+          showToast(t("bookmarkDeleted"), { actionLabel: t("undo"), onAction: undo });
+        });
+
+        wrap.append(editBtn, delBtn);
+        return wrap;
+      }
+
+      function renderBookmarksStage() {
+        const stage = $("bookmarksStage");
+        const titleEl = $("workspaceTitle");
+        const metaEl = $("workspaceMeta");
+        const query = $("globalSearchInput").value;
+        const search = runGlobalSearch(query);
+
+        /* 1. SEARCH MODE */
+        if (search !== null) {
+          renderCarouselFooter(1, 0);
+          titleEl.innerHTML = `${renderSvgIcon(85, "icon-svg")} <span>${escapeHtml(t("searchResultsTitle"))}: "${escapeHtml(query.trim())}"</span>`;
+          metaEl.textContent = t("bookmarkCount", search.matches.length);
+
+          if (search.matches.length === 0) {
+            stage.innerHTML = `<div class="empty-state">${renderSvgIcon(85, "icon-svg-lg")}<div>${escapeHtml(t("emptySearch"))}</div></div>`;
+            return;
+          }
+
+          const container = document.createElement("div");
+          container.className = "search-results-container";
+
+          search.matches.forEach(({ folder, bookmark }, idx) => {
+            const a = document.createElement("a");
+            a.className = "search-result-row" + (idx === 0 ? " first-hit" : "");
+            a.href = safeHref(bookmark.url);
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+
+            const chain = document.createElement("div");
+            chain.className = "search-result-chain";
+
+            const folderBadge = document.createElement("span");
+            folderBadge.className = "search-result-folder";
+            folderBadge.innerHTML = `${renderSvgIcon(folder.iconIndex, "icon-svg-sm")}<span>${escapeHtml(folder.name)}</span>`;
+
+            const mkSep = () => {
+              const s = document.createElement("span");
+              s.className = "chain-sep";
+              s.textContent = "→";
+              return s;
+            };
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "search-result-name";
+            appendHighlighted(nameSpan, bookmark.title, search.terms);
+
+            const tagsSpan = document.createElement("span");
+            tagsSpan.className = "search-result-tags";
+            tagsSpan.textContent = formatTagsBrackets(bookmark.tags);
+
+            chain.append(folderBadge, mkSep(), createFavicon(bookmark, "search"), mkSep(), nameSpan, mkSep(), tagsSpan);
+            a.appendChild(chain);
+            if (idx === 0) {
+              const badge = document.createElement("span");
+              badge.className = "first-hit-badge";
+              badge.textContent = "Enter ↵";
+              a.appendChild(badge);
+            }
+            container.appendChild(a);
+          });
+
+          stage.innerHTML = "";
+          stage.appendChild(container);
+          return;
+        }
+
+        /* 2. FOLDER MODE */
+        const activeFolder = state.folders.find((f) => f.id === state.activeFolderId) || state.folders[0];
+        const bookmarks = activeFolder.bookmarks;
+
+        titleEl.innerHTML = `${renderSvgIcon(activeFolder.iconIndex, "icon-svg")} <span>${escapeHtml(activeFolder.name)}</span>`;
+        metaEl.textContent = t("bookmarkCount", bookmarks.length);
+
+        if (bookmarks.length === 0) {
+          renderCarouselFooter(1, 0);
+          stage.innerHTML = `<div class="empty-state">${renderSvgIcon(52, "icon-svg-lg")}<div>${escapeHtml(t("emptyFolder"))}</div></div>`;
+          return;
+        }
+
+        const html5Drag = !COARSE.matches;
+
+        /* 2A. LIST VIEW */
+        if (state.viewMode === "list") {
+          renderCarouselFooter(1, 0);
+          const frame = document.createElement("div");
+          frame.className = "bookmarks-list-frame";
+          const wrap = document.createElement("div");
+          wrap.className = "bookmarks-list-container";
+          const table = document.createElement("table");
+          table.className = "bookmarks-list-table";
+
+          bookmarks.forEach((bm) => {
+            const tbody = document.createElement("tbody");
+            tbody.className = "bookmarks-list-group";
+            tbody.dataset.id = bm.id;
+            tbody.draggable = html5Drag;
+
+            tbody.addEventListener("dragstart", (e) => {
+              dragCtx = { kind: "bookmark", folderId: activeFolder.id, id: bm.id };
+              tbody.classList.add("dragging");
+              if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", bm.id);
+              }
+            });
+            tbody.addEventListener("dragend", () => {
+              dragCtx = null;
+              tbody.classList.remove("dragging");
+              table.querySelectorAll(".bookmarks-list-group").forEach((el) => el.classList.remove("drag-over"));
+            });
+            tbody.addEventListener("dragover", (e) => {
+              if (!dragCtx || dragCtx.kind !== "bookmark" || dragCtx.folderId !== activeFolder.id) return;
+              e.preventDefault();
+              if (dragCtx.id !== bm.id) tbody.classList.add("drag-over");
+            });
+            tbody.addEventListener("dragleave", () => tbody.classList.remove("drag-over"));
+            tbody.addEventListener("drop", (e) => {
+              e.preventDefault();
+              tbody.classList.remove("drag-over");
+              const ctx = dragCtx;
+              dragCtx = null;
+              if (ctx && ctx.kind === "bookmark" && ctx.folderId === activeFolder.id) {
+                reorderBookmarksInFolder(activeFolder.id, ctx.id, bm.id);
+              }
+            });
+
+            const trMain = document.createElement("tr");
+            trMain.className = "list-row-main";
+
+            const tdIcon = document.createElement("td");
+            tdIcon.style.width = "54px";
+            tdIcon.appendChild(createFavicon(bm, "list"));
+
+            const tdName = document.createElement("td");
+            tdName.style.width = "30%";
+            const link = document.createElement("a");
+            link.className = "list-link";
+            link.href = safeHref(bm.url);
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.draggable = false;
+            link.textContent = bm.title;
+            tdName.appendChild(link);
+
+            const tdUrl = document.createElement("td");
+            tdUrl.className = "list-url-cell";
+            tdUrl.textContent = bm.url;
+
+            const tdAct = document.createElement("td");
+            tdAct.style.width = COARSE.matches ? "92px" : "84px";
+            tdAct.style.textAlign = "right";
+            tdAct.appendChild(buildBookmarkActionButtons(activeFolder.id, bm, "list"));
+
+            trMain.append(tdIcon, tdName, tdUrl, tdAct);
+
+            const trTags = document.createElement("tr");
+            trTags.className = "list-row-tags";
+            const tdTags = document.createElement("td");
+            tdTags.colSpan = 4;
+            const tagsList = parseTags(bm.tags);
+            if (tagsList.length) {
+              tagsList.forEach((tg, idx) => {
+                const chip = createTagChip(tg, idx, false);
+                chip.style.marginRight = "5px";
+                tdTags.appendChild(chip);
+              });
+            } else {
+              tdTags.innerHTML = "&nbsp;";
+            }
+            trTags.appendChild(tdTags);
+
+            tbody.append(trMain, trTags);
+            table.appendChild(tbody);
+          });
+
+          wrap.appendChild(table);
+          frame.appendChild(wrap);
+          stage.innerHTML = "";
+          stage.appendChild(frame);
+          return;
+        }
+
+        /* 2B. GRID CAROUSEL */
+        const { cols, rows, minCardW } = getEffectiveGridDimensions(bookmarks);
+        const perPage = Math.max(1, cols * rows);
+        const totalPages = Math.max(1, Math.ceil(bookmarks.length / perPage));
+        if (state.carouselPage >= totalPages) state.carouselPage = totalPages - 1;
+
+        const startIdx = state.carouselPage * perPage;
+        const pageItems = bookmarks.slice(startIdx, startIdx + perPage);
+
+        const grid = document.createElement("div");
+        grid.className = "bookmarks-grid";
+        grid.style.setProperty("--grid-cols", String(cols));
+        grid.style.setProperty("--card-min-w", `${Math.min(minCardW, CARD_DEFAULT_W)}px`);
+        grid.style.setProperty("--card-default-w", `${CARD_DEFAULT_W}px`);
+        grid.style.setProperty("--card-max-w", `${CARD_MAX_W}px`);
+        grid.style.setProperty("--card-max-h", "110px");
+
+        pageItems.forEach((bm, i) => {
+          const card = document.createElement("div");
+          card.className = `bookmark-card alt-tone-${(i % 3) + 1}`;
+          card.dataset.id = bm.id;
+          card.title = `${bm.title} — ${bm.url}`;
+          card.draggable = html5Drag;
+
+          card.addEventListener("dragstart", (e) => {
+            dragCtx = { kind: "bookmark", folderId: activeFolder.id, id: bm.id };
+            card.classList.add("dragging");
+            if (e.dataTransfer) {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", bm.id);
+            }
+          });
+          card.addEventListener("dragend", () => {
+            dragCtx = null;
+            card.classList.remove("dragging");
+            grid.querySelectorAll(".bookmark-card").forEach((el) => el.classList.remove("drag-over"));
+          });
+          card.addEventListener("dragover", (e) => {
+            if (!dragCtx || dragCtx.kind !== "bookmark" || dragCtx.folderId !== activeFolder.id) return;
+            e.preventDefault();
+            if (dragCtx.id !== bm.id) card.classList.add("drag-over");
+          });
+          card.addEventListener("dragleave", () => card.classList.remove("drag-over"));
+          card.addEventListener("drop", (e) => {
+            e.preventDefault();
+            card.classList.remove("drag-over");
+            const ctx = dragCtx;
+            dragCtx = null;
+            if (ctx && ctx.kind === "bookmark" && ctx.folderId === activeFolder.id) {
+              reorderBookmarksInFolder(activeFolder.id, ctx.id, bm.id);
+            }
+          });
+
+          const favPane = document.createElement("div");
+          favPane.className = "bookmark-favicon-pane";
+          favPane.appendChild(createFavicon(bm, "card"));
+
+          const body = document.createElement("div");
+          body.className = "bookmark-body";
+
+          const titleLink = document.createElement("a");
+          titleLink.className = "bookmark-title";
+          titleLink.href = safeHref(bm.url);
+          titleLink.target = "_blank";
+          titleLink.rel = "noopener noreferrer";
+          titleLink.draggable = false;
+          titleLink.textContent = bm.title;
+
+          const tagsCloud = document.createElement("div");
+          tagsCloud.className = "bookmark-tags-cloud";
+          parseTags(bm.tags).forEach((tg, tIdx) => tagsCloud.appendChild(createTagChip(tg, tIdx, true)));
+
+          body.append(titleLink, tagsCloud);
+          card.append(favPane, body, buildBookmarkActionButtons(activeFolder.id, bm, "card"));
+          grid.appendChild(card);
+        });
+
+        stage.innerHTML = "";
+        stage.appendChild(grid);
+        grid.querySelectorAll(".bookmark-tags-cloud").forEach(fitTagChips);
+        renderCarouselFooter(totalPages, state.carouselPage);
+      }
+
+      /* =====================================================================
+         GRID PICKER
+         ===================================================================== */
+      function initGridMatrixPicker() {
+        const cellsWrap = $("matrixCells");
+        const readout = $("matrixReadout");
+        cellsWrap.innerHTML = "";
+
+        const activeFolder = state.folders.find((f) => f.id === state.activeFolderId) || state.folders[0];
+        const lim = getGridLimits(activeFolder.bookmarks);
+
+        function highlight(cCount, rCount) {
+          readout.textContent = `${cCount} × ${rCount}`;
+          cellsWrap.querySelectorAll(".matrix-cell").forEach((cell) => {
+            cell.classList.toggle("highlighted", Number(cell.dataset.col) <= cCount && Number(cell.dataset.row) <= rCount);
+          });
+        }
+        const effective = () => {
+          const e = getEffectiveGridDimensions(activeFolder.bookmarks);
+          return [e.cols, e.rows];
+        };
+
+        for (let r = 1; r <= 8; r++) {
+          for (let c = 1; c <= 8; c++) {
+            const cell = document.createElement("button");
+            cell.type = "button";
+            cell.className = "matrix-cell";
+            cell.dataset.col = String(c);
+            cell.dataset.row = String(r);
+            cell.setAttribute("aria-label", `${c} × ${r}`);
+            // Недоступные на этом экране размеры блокируем: подсветка всегда совпадает с реальной сеткой
+            const allowed = c >= lim.minC && c <= lim.maxC && r >= lim.minR && r <= lim.maxR;
+            cell.disabled = !allowed;
+            if (allowed) {
+              cell.addEventListener("mouseenter", () => highlight(c, r));
+              cell.addEventListener("focus", () => highlight(c, r));
+              cell.addEventListener("click", () => {
+                state.gridCols = c;
+                state.gridRows = r;
+                state.viewMode = "grid";
+                state.carouselPage = 0;
+                savePrefs();
+                closePopovers();
+                syncConfigButtons();
+                renderBookmarksStage();
+              });
+            }
+            cellsWrap.appendChild(cell);
+          }
+        }
+
+        cellsWrap.onmouseleave = () => highlight(...effective());
+        highlight(...effective());
+      }
+
+      /* =====================================================================
+         FOLDER POPOVER
+         ===================================================================== */
+      function initFolderIconPicker() {
+        const picker = $("folderIconPickerGrid");
+        picker.innerHTML = "";
+        for (let i = 0; i < ICON_PATHS.length; i++) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "icon-option-btn" + (i === selectedFolderIcon ? " selected" : "");
+          btn.dataset.iconIdx = String(i);
+          btn.setAttribute("aria-label", "Icon " + (i + 1));
+          btn.innerHTML = renderSvgIcon(i, "icon-svg-sm");
+          btn.addEventListener("click", () => {
+            selectedFolderIcon = i;
+            picker.querySelectorAll(".icon-option-btn").forEach((el) => {
+              el.classList.toggle("selected", Number(el.dataset.iconIdx) === i);
+            });
+          });
+          picker.appendChild(btn);
+        }
+      }
+
+      function positionFolderPopover(anchorEl, isNewFolder) {
+        const pop = $("folderCreatorPopover");
+        const isMobile = window.innerWidth <= 720;
+        if (isNewFolder) {
+          pop.style.top = "auto";
+          pop.style.left = isMobile ? "calc(var(--sidebar-compact-w) + 8px)" : "78px";
+          pop.style.bottom = isMobile ? "70px" : "16px";
+          return;
+        }
+        if (!anchorEl) return;
+        const rect = anchorEl.getBoundingClientRect();
+        const popW = Math.min(332, window.innerWidth - 24);
+        const popH = 330;
+        let left = rect.right + 10;
+        if (left + popW > window.innerWidth - 12) left = Math.max(12, window.innerWidth - popW - 12);
+        let top = rect.top - 12;
+        if (top + popH > window.innerHeight - 12) top = Math.max(12, window.innerHeight - popH - 12);
+        pop.style.bottom = "auto";
+        pop.style.left = `${Math.round(left)}px`;
+        pop.style.top = `${Math.round(top)}px`;
+      }
+
+      function openFolderPopover(existingFolder = null, anchorEl = null) {
+        closePopovers();
+        if (existingFolder) {
+          editingFolderId = existingFolder.id;
+          selectedFolderIcon = existingFolder.iconIndex;
+          $("folderPopTitle").textContent = t("editFolderTitle");
+          $("newFolderNameInput").value = existingFolder.name;
+          $("confirmFolderBtn").textContent = t("save");
+        } else {
+          editingFolderId = null;
+          selectedFolderIcon = 1;
+          $("folderPopTitle").textContent = t("createFolderTitle");
+          $("newFolderNameInput").value = "";
+          $("confirmFolderBtn").textContent = t("create");
+        }
+        initFolderIconPicker();
+        positionFolderPopover(anchorEl, !existingFolder);
+        $("folderCreatorPopover").classList.add("open");
+        setTimeout(() => $("newFolderNameInput").focus(), 40);
+      }
+
+      function confirmFolderPopover() {
+        const input = $("newFolderNameInput");
+        const name = clip(input.value, 40);
+        if (!name) {
+          showToast(t("needFolderName"));
+          input.focus();
+          return;
+        }
+
+        if (editingFolderId) {
+          const target = state.folders.find((f) => f.id === editingFolderId);
+          if (target) {
+            closePopovers();
+            mutate(() => { target.name = name; target.iconIndex = selectedFolderIcon; });
+            showToast(t("folderUpdated"));
+          }
+          return;
+        }
+
+        const newFolder = { id: uid("f"), name, iconIndex: selectedFolderIcon, bookmarks: [] };
+        closePopovers();
+        mutate(() => {
+          state.folders.push(newFolder);
+          state.activeFolderId = newFolder.id;
+          state.carouselPage = 0;
+        });
+        savePrefs();
+        showToast(t("folderCreated"));
+      }
+
+      /* =====================================================================
+         BOOKMARK MODAL
+         ===================================================================== */
+      function openBookmarkModal(folderId = null, bookmark = null) {
+        closePopovers();
+        editingBookmarkCtx = bookmark ? { folderId, bookmarkId: bookmark.id } : null;
+
+        const select = $("bmFolderSelect");
+        select.innerHTML = "";
+        state.folders.forEach((f) => {
+          const opt = document.createElement("option");
+          opt.value = f.id;
+          opt.textContent = f.name;
+          select.appendChild(opt);
+        });
+        select.value = folderId || state.activeFolderId || state.folders[0].id;
+
+        $("bookmarkModalTitle").textContent = bookmark ? t("editBookmarkTitle") : t("addBookmarkTitle");
+        $("bmTitleInput").value = bookmark ? bookmark.title : "";
+        $("bmUrlInput").value = bookmark ? bookmark.url : "";
+        $("bmIconInput").value = bookmark && bookmark.iconUrl && bookmark.iconUrl !== "<favicon>" ? bookmark.iconUrl : "";
+        $("bmTagsInput").value = bookmark ? parseTags(bookmark.tags).join(" ") : "";
+
+        openModal("bookmarkModalBackdrop", "bmTitleInput");
+      }
+
+      function closeBookmarkModal() {
+        hideModal("bookmarkModalBackdrop");
+        editingBookmarkCtx = null;
+      }
+
+      function saveBookmarkFromModal() {
+        const targetFolderId = $("bmFolderSelect").value;
+        const title = clip($("bmTitleInput").value, 120);
+        const rawUrl = $("bmUrlInput").value.trim();
+        if (!title || !rawUrl) {
+          showToast(t("needTitleUrl"));
+          return;
+        }
+        const url = sanitizeUrl(rawUrl);
+        if (!url) {
+          showToast(t("invalidUrl"));
+          $("bmUrlInput").focus();
+          return;
+        }
+        const iconUrl = sanitizeIconUrl($("bmIconInput").value);
+        const tags = parseTags($("bmTagsInput").value);
+
+        const targetFolder = state.folders.find((f) => f.id === targetFolderId);
+        if (!targetFolder) return;
+
+        const ctx = editingBookmarkCtx;
+        closeBookmarkModal();
+
+        mutate(() => {
+          if (ctx) {
+            const oldFolder = state.folders.find((f) => f.id === ctx.folderId);
+            const idx = oldFolder ? oldFolder.bookmarks.findIndex((b) => b.id === ctx.bookmarkId) : -1;
+            if (idx !== -1) {
+              const updated = Object.assign({}, oldFolder.bookmarks[idx], { title, url, iconUrl, tags });
+              if (oldFolder.id === targetFolder.id) {
+                oldFolder.bookmarks[idx] = updated;
+              } else {
+                oldFolder.bookmarks.splice(idx, 1);
+                targetFolder.bookmarks.push(updated);
+              }
+            }
+          } else {
+            targetFolder.bookmarks.push({ id: uid("b"), title, url, iconUrl, tags });
+          }
+          state.activeFolderId = targetFolder.id;
+        });
+        savePrefs();
+        showToast(t("bookmarkSaved"));
+      }
+
+      /* =====================================================================
+         EXPORT / IMPORT
+         ===================================================================== */
+      function openIoModal() {
+        closePopovers();
+        pendingImportData = null;
+        $("importChoiceBox").style.display = "none";
+        $("ioStatusDesc").textContent = state.hasUnsavedExport ? t("unsavedWarning") : t("allSavedWarning");
+        openModal("ioModalBackdrop", "exportJsonBtn");
+      }
+
+      function closeIoModal() {
+        hideModal("ioModalBackdrop");
+        pendingImportData = null;
+      }
+
+      function exportStateToJson() {
+        const payload = {
+          app: "BOOKMARKS_DASHBOARD",
+          version: DATA_VERSION,
+          exportedAt: new Date().toISOString(),
+          settings: {
+            gridCols: state.gridCols, gridRows: state.gridRows, viewMode: state.viewMode,
+            theme: state.theme, font: state.font, lang: state.lang
+          },
+          folders: state.folders
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `bookmarks-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+        state.hasUnsavedExport = false;
+        saveData(false);
+        $("ioStatusDesc").textContent = t("allSavedWarning");
+        showToast(t("exportedOk"));
+      }
+
+      function handleImportFileSelected(file) {
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { showToast(t("invalidJson")); return; }
+        const reader = new FileReader();
+        reader.onerror = () => showToast(t("invalidJson"));
+        reader.onload = () => {
+          let parsed;
+          try { parsed = JSON.parse(String(reader.result || "")); } catch (_e) { showToast(t("invalidJson")); return; }
+
+          let incoming = null;
+          let settings = null;
+          if (Array.isArray(parsed)) {
+            incoming = parsed;
+          } else if (parsed && typeof parsed === "object" && Array.isArray(parsed.folders)) {
+            if (parsed.app && parsed.app !== "BOOKMARKS_DASHBOARD") { showToast(t("importWrongApp")); return; }
+            if (Number(parsed.version) > DATA_VERSION) { showToast(t("importNewerVersion")); return; }
+            incoming = parsed.folders;
+            settings = parsed.settings && typeof parsed.settings === "object" ? parsed.settings : null;
+          }
+          if (!incoming) { showToast(t("invalidJson")); return; }
+
+          const { folders, skipped } = sanitizeFolders(incoming);
+          if (!folders.length) { showToast(t("invalidJson")); return; }
+
+          pendingImportData = { folders, settings, skipped };
+          const total = folders.reduce((sum, f) => sum + f.bookmarks.length, 0);
+          $("importChoiceText").textContent = t("importPreview", folders.length, total, skipped);
+          $("importSettingsRow").style.display = settings ? "flex" : "none";
+          $("importChoiceBox").style.display = "flex";
+        };
+        reader.readAsText(file);
+      }
+
+      function applyImportedSettings(s) {
+        const dim = (v) => Math.min(8, Math.max(1, Math.round(Number(v)) || 3));
+        if (s.gridCols) state.gridCols = dim(s.gridCols);
+        if (s.gridRows) state.gridRows = dim(s.gridRows);
+        if (s.viewMode === "grid" || s.viewMode === "list") state.viewMode = s.viewMode;
+        if (s.theme === "dark" || s.theme === "light") state.theme = s.theme;
+        if (s.font === "sans" || s.font === "mono") state.font = s.font;
+        if (s.lang === "en" || s.lang === "ru") state.lang = s.lang;
+        savePrefs();
+      }
+
+      function applyImportedData(mode) {
+        const imp = pendingImportData;
+        if (!imp) return;
+        let addedF = 0, addedB = 0;
+
+        if ($("importSettingsChk").checked && imp.settings) applyImportedSettings(imp.settings);
+        closeIoModal();
+
+        mutate(() => {
+          if (mode === "overwrite") {
+            state.folders = imp.folders;
+            state.activeFolderId = imp.folders[0].id;
+            addedF = imp.folders.length;
+            imp.folders.forEach((f) => { addedB += f.bookmarks.length; });
+          } else {
+            let firstTouched = null;
+            imp.folders.forEach((f) => {
+              const same = state.folders.find((x) => x.name.toLowerCase() === f.name.toLowerCase());
+              if (same) {
+                const urls = new Set(same.bookmarks.map((b) => b.url));
+                f.bookmarks.forEach((b) => {
+                  if (urls.has(b.url)) return;
+                  urls.add(b.url);
+                  same.bookmarks.push(Object.assign({}, b, { id: uid("b") }));
+                  addedB++;
+                });
+                if (!firstTouched) firstTouched = same.id;
+              } else {
+                const nf = Object.assign({}, f, { id: uid("f"), bookmarks: f.bookmarks.map((b) => Object.assign({}, b, { id: uid("b") })) });
+                state.folders.push(nf);
+                addedF++;
+                addedB += nf.bookmarks.length;
+                if (!firstTouched) firstTouched = nf.id;
+              }
+            });
+            if (firstTouched) state.activeFolderId = firstTouched;
+          }
+          state.carouselPage = 0;
+        });
+        savePrefs();
+        showToast(t("importResult", addedF, addedB, imp.skipped), { actionLabel: t("undo"), onAction: undo });
+      }
+
+      /* =====================================================================
+         WELCOME & LICENCE
+         ===================================================================== */
+      function openInfoModal(kind) {
+        const titleEl = $("infoModalTitle");
+        const contentEl = $("infoModalContent");
+
+        if (kind === "licence") {
+          titleEl.textContent = t("licenceTitle");
+          contentEl.innerHTML = `
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.</p>
+            <p>Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra.</p>
+          `;
+        } else {
+          titleEl.textContent = t("welcomeTitle");
+          if (state.lang === "ru") {
+            contentEl.innerHTML = `
+              <p><strong>Bookmarks</strong> — персональная стартовая страница для организации папок и закладок прямо в браузере.</p>
+              <p>Все данные хранятся локально в <strong>localStorage</strong>. При очистке данных браузера или сбое хранилища изменения могут быть утеряны — регулярно делайте резервную копию через <strong>Export JSON</strong> (или команду <code>@export</code> в поиске).</p>
+              <p>Программа предоставляется «как есть» (AS IS), без каких-либо явных или подразумеваемых гарантий.</p>
+              <p>Документ лицензии: <button type="button" id="openLicenceFromWelcome" class="inline-link-btn">${escapeHtml(t("licenceLinkText"))}</button></p>
+            `;
+          } else {
+            contentEl.innerHTML = `
+              <p><strong>Bookmarks</strong> is a single-user personal dashboard for organizing folders and bookmarks locally in your browser.</p>
+              <p>All data is stored in <strong>localStorage</strong>. Clearing browser storage can erase your changes — export backups manually via <strong>Export JSON</strong> (or the <code>@export</code> search command).</p>
+              <p>Provided "AS IS" without warranties of any kind.</p>
+              <p>Licence terms: <button type="button" id="openLicenceFromWelcome" class="inline-link-btn">${escapeHtml(t("licenceLinkText"))}</button></p>
+            `;
+          }
+        }
+        openModal("infoModalBackdrop", "infoModalCloseBtn");
+      }
+
+      function closeInfoModal() {
+        if (!hideModal("infoModalBackdrop")) return;
+        if (!state.welcomeShown) {
+          state.welcomeShown = true;
+          savePrefs();
+        }
+      }
+
+      /* =====================================================================
+         THEME / FONT / LANGUAGE / POPOVERS
+         ===================================================================== */
+      function toggleTheme() { state.theme = state.theme === "dark" ? "light" : "dark"; savePrefs(); applyVisualSettings(); }
+      function toggleFont() { state.font = state.font === "sans" ? "mono" : "sans"; savePrefs(); renderAll(); }
+      function toggleLang() { state.lang = state.lang === "ru" ? "en" : "ru"; savePrefs(); renderAll(); }
+
+      function applyVisualSettings() {
+        document.documentElement.setAttribute("data-theme", state.theme);
+        document.documentElement.setAttribute("data-font", state.font);
+        document.documentElement.lang = state.lang;
+
+        $("globalSearchInput").placeholder = t("searchPlaceholder");
+
+        $("themeModeIcon").innerHTML = state.theme === "dark" ? ICON_PATHS[37] : ICON_PATHS[38];
+
+        document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.getAttribute("data-i18n")); });
+        document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+          const v = t(el.getAttribute("data-i18n-title"));
+          el.title = v;
+          el.setAttribute("aria-label", v);
+        });
+        $("globalSearchInput").title = t("searchPlaceholder");
+
+        renderDropdown();
+        syncConfigButtons();
+        syncDirtyIndicator();
+        syncUndoButton();
+        syncLockSortButton();
+      }
+
+      function syncConfigButtons() {
+        const view = $("cfgViewModeBtn");
+        const font = $("cfgFontBtn");
+        view.classList.toggle("active-state", state.viewMode === "list");
+        view.setAttribute("aria-pressed", String(state.viewMode === "list"));
+        font.classList.toggle("active-state", state.font === "mono");
+        font.setAttribute("aria-pressed", String(state.font === "mono"));
+      }
+
+      function closePopovers() {
+        $("gridMatrixPopover").classList.remove("open");
+        $("folderCreatorPopover").classList.remove("open");
+        $("moreMenuPopover").classList.remove("open");
+      }
+
+      function renderAll() {
+        applyVisualSettings();
+        renderFoldersSidebar();
+        renderBookmarksStage();
+      }
+
+      /* =====================================================================
+         CAROUSEL NAVIGATION
+         ===================================================================== */
+      function getTotalGridPages() {
+        if ($("globalSearchInput").value.trim() || state.viewMode !== "grid") return 1;
+        const f = state.folders.find((x) => x.id === state.activeFolderId) || state.folders[0];
+        if (!f || !f.bookmarks.length) return 1;
+        const { cols, rows } = getEffectiveGridDimensions(f.bookmarks);
+        return Math.max(1, Math.ceil(f.bookmarks.length / Math.max(1, cols * rows)));
+      }
+
+      function stepCarouselPage(delta) {
+        const total = getTotalGridPages();
+        if (total <= 1) return;
+        const next = Math.min(total - 1, Math.max(0, state.carouselPage + delta));
+        if (next !== state.carouselPage) {
+          state.carouselPage = next;
+          renderBookmarksStage();
+        }
+      }
+
+      function bindCarouselGestures() {
+        const stage = $("bookmarksStage");
+
+        let wheelLock = false;
+        stage.addEventListener("wheel", (e) => {
+          if (state.viewMode !== "grid" || $("globalSearchInput").value.trim()) return;
+          if (getTotalGridPages() <= 1) return;
+          const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+          if (Math.abs(delta) < 12) return;
+          e.preventDefault();
+          if (wheelLock) return;
+          wheelLock = true;
+          stepCarouselPage(delta > 0 ? 1 : -1);
+          setTimeout(() => { wheelLock = false; }, 180);
+        }, { passive: false });
+
+        // Мышь/перо: жест по свободному месту. Тач обрабатывается touch-жестами ниже
+        // (в том числе поверх карточек).
+        let px = null, py = null;
+        stage.addEventListener("pointerdown", (e) => {
+          if (e.pointerType === "touch" || e.target.closest("a, button")) return;
+          px = e.clientX; py = e.clientY;
+        });
+        stage.addEventListener("pointerup", (e) => {
+          if (px === null) return;
+          const dx = e.clientX - px, dy = e.clientY - py;
+          px = py = null;
+          if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.2) stepCarouselPage(dx < 0 ? 1 : -1);
+        });
+
+        bindTouchGestures(stage, {
+          itemSel: ".bookmark-card, .bookmarks-list-group",
+          onReorder: (a, b) => reorderBookmarksInFolder(state.activeFolderId, a, b),
+          onSwipe: (dir) => {
+            if (state.viewMode === "grid" && !$("globalSearchInput").value.trim()) stepCarouselPage(dir);
+          }
+        });
+
+        bindTouchGestures($("folderList"), {
+          itemSel: ".folder-row",
+          canDrag: () => !state.folderSortLocked,
+          onReorder: reorderFolders
+        });
+      }
+
+      /* =====================================================================
+         EVENTS
+         ===================================================================== */
+      function focusSearch(select) {
+        const input = $("globalSearchInput");
+        input.focus();
+        if (select) input.select();
+      }
+
+      function bindEvents() {
+        $("brandLogoSlot").innerHTML = PAPERCLIP_SVG;
+
+        $("toggleRailBtn").addEventListener("click", () => {
+          state.sidebarExpanded = !state.sidebarExpanded;
+          savePrefs();
+          renderFoldersSidebar();
+        });
+
+        $("lockSortBtn").addEventListener("click", () => {
+          state.folderSortLocked = !state.folderSortLocked;
+          savePrefs();
+          renderFoldersSidebar();
+          showToast(state.folderSortLocked ? t("sortLockedToast") : t("sortUnlockedToast"));
+        });
+
+        $("addFolderBtn").addEventListener("click", (e) => {
+          e.stopPropagation();
+          openFolderPopover(null, e.currentTarget);
+        });
+
+        $("cancelFolderBtn").addEventListener("click", closePopovers);
+        $("confirmFolderBtn").addEventListener("click", confirmFolderPopover);
+        $("newFolderNameInput").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") confirmFolderPopover();
+          if (e.key === "Escape") closePopovers();
+        });
+
+        /* Search */
+        const searchInput = $("globalSearchInput");
+        const clearBtn = $("clearSearchBtn");
+
+        searchInput.addEventListener("input", () => {
+          clearBtn.classList.toggle("visible", searchInput.value.length > 0);
+          ddIndex = -1;
+          renderDropdown();
+          renderBookmarksStage();
+        });
+        searchInput.addEventListener("focus", renderDropdown);
+
+        searchInput.addEventListener("keydown", (e) => {
+          const open = $("atCommandsDropdown").classList.contains("open") && ddItems.length > 0;
+
+          if (open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+            e.preventDefault();
+            const n = ddItems.length;
+            ddIndex = e.key === "ArrowDown" ? (ddIndex + 1) % n : (ddIndex <= 0 ? n - 1 : ddIndex - 1);
+            renderDropdown();
+            return;
+          }
+          if (open && e.key === "Tab" && !e.shiftKey) {
+            e.preventDefault();
+            applyDropdownItem(ddItems[ddIndex >= 0 ? ddIndex : 0], true);
+            return;
+          }
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+
+          if (open && ddIndex >= 0) {
+            applyDropdownItem(ddItems[ddIndex], false);
+            return;
+          }
+          const val = searchInput.value;
+          if (val.trim().startsWith("@")) {
+            if (executeSearchCommand(val)) return;
+            const only = ddItems.length === 1 && ddItems[0].kind === "cmd" ? ddItems[0] : null;
+            // Деструктивную команду по неполному вводу не выполняем — только дописываем
+            if (only) applyDropdownItem(only, only.text === "@clear");
+            return;
+          }
+          openFirstSearchResult();
+        });
+
+        clearBtn.addEventListener("click", () => {
+          resetSearchInput();
+          searchInput.focus();
+        });
+
+        document.querySelectorAll(".search-hint-chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            const sample = chip.dataset.sample || "";
+            const cur = searchInput.value.trim();
+            searchInput.value = cur ? `${cur} ${sample}` : sample;
+            clearBtn.classList.toggle("visible", searchInput.value.length > 0);
+            ddIndex = -1;
+            renderDropdown();
+            renderBookmarksStage();
+            searchInput.focus();
+          });
+        });
+
+        /* Dock */
+        $("cfgUndoBtn").addEventListener("click", (e) => { e.stopPropagation(); undo(); });
+
+        $("cfgGridSizeBtn").addEventListener("click", (e) => {
+          e.stopPropagation();
+          const pop = $("gridMatrixPopover");
+          const wasOpen = pop.classList.contains("open");
+          closePopovers();
+          if (!wasOpen) {
+            initGridMatrixPicker();
+            pop.classList.add("open");
+          }
+        });
+
+        $("cfgViewModeBtn").addEventListener("click", () => {
+          state.viewMode = state.viewMode === "grid" ? "list" : "grid";
+          state.carouselPage = 0;
+          savePrefs();
+          syncConfigButtons();
+          renderBookmarksStage();
+        });
+
+        $("cfgThemeBtn").addEventListener("click", toggleTheme);
+        $("cfgFontBtn").addEventListener("click", toggleFont);
+        $("cfgLangBtn").addEventListener("click", toggleLang);
+
+        $("cfgMoreBtn").addEventListener("click", (e) => {
+          e.stopPropagation();
+          const pop = $("moreMenuPopover");
+          const wasOpen = pop.classList.contains("open");
+          closePopovers();
+          if (!wasOpen) pop.classList.add("open");
+        });
+        $("moreThemeBtn").addEventListener("click", () => { closePopovers(); toggleTheme(); });
+        $("moreFontBtn").addEventListener("click", () => { closePopovers(); toggleFont(); });
+        $("moreLangBtn").addEventListener("click", () => { closePopovers(); toggleLang(); });
+
+        $("cfgIoBtn").addEventListener("click", (e) => { e.stopPropagation(); openIoModal(); });
+        $("cfgAddBookmarkBtn").addEventListener("click", (e) => { e.stopPropagation(); openBookmarkModal(state.activeFolderId, null); });
+
+        /* Bookmark modal */
+        $("bmCancelBtn").addEventListener("click", closeBookmarkModal);
+        $("bmSaveBtn").addEventListener("click", saveBookmarkFromModal);
+        $("bookmarkModalBackdrop").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeBookmarkModal(); });
+        ["bmTitleInput", "bmUrlInput", "bmIconInput", "bmTagsInput"].forEach((id) => {
+          $(id).addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); saveBookmarkFromModal(); }
+          });
+        });
+
+        /* IO modal */
+        $("ioCloseBtn").addEventListener("click", closeIoModal);
+        $("ioModalBackdrop").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeIoModal(); });
+        $("exportJsonBtn").addEventListener("click", exportStateToJson);
+        $("importJsonTriggerBtn").addEventListener("click", () => $("importFileInput").click());
+        $("importFileInput").addEventListener("change", (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) handleImportFileSelected(file);
+          e.target.value = "";
+        });
+        $("importMergeBtn").addEventListener("click", () => applyImportedData("merge"));
+        $("importOverwriteBtn").addEventListener("click", () => applyImportedData("overwrite"));
+
+        /* Info modal */
+        $("infoModalCloseBtn").addEventListener("click", closeInfoModal);
+        $("infoModalBackdrop").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeInfoModal(); });
+        $("infoModalContent").addEventListener("click", (e) => {
+          if (e.target && e.target.id === "openLicenceFromWelcome") openInfoModal("licence");
+        });
+
+        /* Confirm modal */
+        $("confirmCancelBtn").addEventListener("click", () => settleConfirm(false));
+        $("confirmOkBtn").addEventListener("click", () => settleConfirm(true));
+        $("confirmModalBackdrop").addEventListener("click", (e) => { if (e.target === e.currentTarget) settleConfirm(false); });
+
+        /* Outside clicks */
+        document.addEventListener("click", (e) => {
+          if (
+            !e.target.closest("#gridMatrixPopover") && !e.target.closest("#cfgGridSizeBtn") &&
+            !e.target.closest("#folderCreatorPopover") && !e.target.closest("#addFolderBtn") &&
+            !e.target.closest(".folder-action-mini.edit") &&
+            !e.target.closest("#moreMenuPopover") && !e.target.closest("#cfgMoreBtn")
+          ) {
+            closePopovers();
+          }
+          if (!e.target.closest(".search-wrapper")) $("atCommandsDropdown").classList.remove("open");
+
+          if (
+            window.innerWidth <= 720 && state.sidebarExpanded &&
+            !e.target.closest("#folderSidebar") && !e.target.closest("#folderCreatorPopover") && !e.target.closest(".modal-backdrop")
+          ) {
+            state.sidebarExpanded = false;
+            savePrefs();
+            renderFoldersSidebar();
+          }
+        });
+
+        /* Keyboard */
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            if ($("confirmModalBackdrop").classList.contains("open")) { settleConfirm(false); return; }
+            closePopovers();
+            $("atCommandsDropdown").classList.remove("open");
+            closeBookmarkModal();
+            closeIoModal();
+            closeInfoModal();
+            return;
+          }
+
+          // Focus trap в модальных окнах
+          if (e.key === "Tab") {
+            const open = MODAL_IDS.map($).find((b) => b.classList.contains("open"));
+            if (!open) return;
+            const f = Array.from(open.querySelectorAll("button:not([disabled]), input:not([disabled]), select")).filter((el) => el.offsetParent !== null);
+            if (!f.length) return;
+            const first = f[0], last = f[f.length - 1];
+            const inside = open.contains(document.activeElement);
+            if (e.shiftKey && (!inside || document.activeElement === first)) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && (!inside || document.activeElement === last)) { e.preventDefault(); first.focus(); }
+            return;
+          }
+
+          if (anyModalOpen()) return;
+
+          const tag = e.target.tagName;
+          const typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable;
+          const mod = e.ctrlKey || e.metaKey;
+
+          if (mod && !e.altKey && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            focusSearch(true);
+            return;
+          }
+          if (typing) return;
+
+          if (mod && !e.altKey) {
+            const k = e.key.toLowerCase();
+            if (k === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
+            if ((k === "z" && e.shiftKey) || k === "y") { e.preventDefault(); redo(); return; }
+          }
+          if (e.key === "/" && !mod && !e.altKey) {
+            e.preventDefault();
+            focusSearch(false);
+            return;
+          }
+          if (e.key === "ArrowRight") stepCarouselPage(1);
+          else if (e.key === "ArrowLeft") stepCarouselPage(-1);
+        });
+
+        bindCarouselGestures();
+
+        let resizeTimer;
+        const onResize = () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(renderBookmarksStage, 90);
+        };
+        window.addEventListener("resize", onResize);
+        window.addEventListener("orientationchange", onResize);
+
+        /* Синхронизация между вкладками */
+        window.addEventListener("storage", (e) => {
+          if (e.storageArea && e.storageArea !== window.localStorage) return;
+          let changed = false;
+          if (e.key === null || e.key === DATA_KEY) {
+            const d = loadData();
+            state.folders = d.folders;
+            state.hasUnsavedExport = d.dirty;
+            if (!state.folders.some((f) => f.id === state.activeFolderId)) state.activeFolderId = state.folders[0].id;
+            undoStack = [];   // снимки устарели
+            redoStack = [];
+            changed = true;
+            showToast(t("syncedFromOtherTab"));
+          }
+          if (e.key === null || e.key === PREFS_KEY) {
+            const p = loadPrefs();
+            PREF_KEYS.forEach((k) => { state[k] = p[k]; });
+            changed = true;
+          }
+          if (changed) renderAll();
+        });
+      }
+
+      /* =====================================================================
+         BOOT
+         ===================================================================== */
+      bindEvents();
+      renderAll();
+
+      if (corruptDetected) showToast(t("corruptNotice"), { duration: 9000 });
+      else if (initialData.skipped) showToast(t("skippedInvalid", initialData.skipped), { duration: 5000 });
+
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().catch(() => {});
+      }
+
+      if (!state.welcomeShown) openInfoModal("welcome");
+      else if (!COARSE.matches) $("globalSearchInput").focus();
+    })();
+  </script>
+</body>
+</html>
